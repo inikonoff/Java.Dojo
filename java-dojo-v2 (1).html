@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Java Dojo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #07080d;
+  --s1:       #0e1018;
+  --s2:       #151720;
+  --s3:       #1c1f2e;
+  --border:   #252838;
+  --border2:  #2e3245;
+  --acc:      #e8ff5a;
+  --acc2:     #c8e600;
+  --java:     #4e9eff;
+  --java2:    #78b8ff;
+  --green:    #3ddc84;
+  --red:      #ff5f57;
+  --text:     #dde1f0;
+  --text2:    #7e84a3;
+  --text3:    #3e4260;
+  --kw:       #ff79c6;
+  --str:      #a8e6cf;
+  --num:      #bd93f9;
+  --type:     #ffb86c;
+  --cm:       #6272a4;
+  --cls:      #8be9fd;
+  --mt:       #50fa7b;
+  --card-shadow: none;
+  --input-shadow: none;
+}
+
+/* ── LIGHT THEME ── */
+body.light {
+  --bg:       #f4f5f7;
+  --s1:       #ffffff;
+  --s2:       #eef0f4;
+  --s3:       #e4e7ed;
+  --border:   #dde0e8;
+  --border2:  #c8ccd6;
+  --acc:      #b8a000;   /* darkened yellow for light bg readability */
+  --acc2:     #a09000;
+  --java:     #2070cc;
+  --java2:    #1a5faa;
+  --green:    #1a9950;
+  --red:      #d63030;
+  --text:     #1a1d2e;
+  --text2:    #4a5068;
+  --text3:    #8890aa;
+  --kw:       #b5006a;
+  --str:      #1a7a50;
+  --num:      #6a30c0;
+  --type:     #b05000;
+  --cm:       #6272a4;
+  --cls:      #0060a0;
+  --mt:       #007a30;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  --input-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background .25s, color .25s;
+}
+
+/* light mode surface elevation via shadows */
+body.light .t-card,
+body.light .exp-card,
+body.light .quiz-q,
+body.light .prac-stack,
+body.light .instr-card,
+body.light .hint-row,
+body.light .ai-panel,
+body.light .hdr {
+  box-shadow: var(--card-shadow);
+}
+body.light .code-input,
+body.light .ai-in {
+  box-shadow: var(--input-shadow);
+}
+body.light .code-box,
+body.light .prac-stack {
+  box-shadow: var(--card-shadow);
+}
+/* acc pill readable on light */
+body.light .xp-pill {
+  background: var(--text);
+  color: var(--bg);
+}
+body.light .btn-acc {
+  background: var(--text);
+  color: var(--s1);
+}
+body.light .btn-acc:hover {
+  background: var(--text2);
+}
+body.light .logo-dot { color: var(--java); }
+body.light .hero h1 em { color: var(--java); }
+body.light .hero-tag {
+  border-color: rgba(32,112,204,.3);
+  color: var(--java);
+}
+body.light .t-bar-fill { background: var(--java); }
+body.light .sdot.active { background: var(--java); }
+body.light .exp-ref { color: var(--java); }
+
+/* fix: LVL pill readable on light */
+body.light .xp-pill {
+  background: #1a1d2e;
+  color: #ffffff;
+}
+/* fix: code input areas light */
+body.light .code-input {
+  background: #f8f9fb;
+  color: #1a1d2e;
+  border-left-color: var(--java);
+}
+body.light .code-input.ok  { border-left-color: var(--green); color: var(--green); }
+body.light .code-input.err { border-left-color: var(--red); }
+body.light .prac-stack { background: #f0f2f6; }
+body.light .code-box { background: #f0f2f6; }
+body.light .code-body { background: #f0f2f6; }
+/* fix: pline-done green row on light */
+body.light .pline-done { background: rgba(26,153,80,.06); }
+/* fix: ai input on light */
+body.light .ai-in {
+  background: #f4f5f7;
+  color: #1a1d2e;
+}
+/* fix: hint row */
+body.light .hint-row { background: #eef0f4; }
+/* fix: quiz options */
+body.light .opt { background: #eef0f4; }
+/* fix: hdr background */
+body.light .hdr { background: rgba(244,245,247,.95); }
+
+/* grain */
+body::after {
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:999;opacity:.5;
+}
+
+/* ── HEADER ── */
+.hdr {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;
+  background:rgba(7,8,13,.92);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+}
+.logo {
+  font-family:'Syne',sans-serif;font-weight:800;font-size:20px;
+  letter-spacing:-1px;cursor:pointer;display:flex;align-items:center;gap:8px;
+}
+.logo-dot { color:var(--acc); }
+.hdr-xp {
+  display:flex;align-items:center;gap:10px;
+}
+.xp-pill {
+  background:var(--acc);color:#07080d;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:11px;
+  padding:4px 12px;border-radius:20px;letter-spacing:.5px;
+}
+.xp-val { font-size:13px;color:var(--text2);font-weight:600; }
+
+/* ── SCREENS ── */
+.scr { display:none; }
+.scr.on { display:block; }
+
+/* ── HOME ── */
+#s-home { max-width:860px;margin:0 auto;padding:0 16px 60px; }
+
+.hero {
+  padding:52px 0 36px;
+  position:relative;
+}
+.hero::before {
+  content:'';position:absolute;
+  top:-20px;left:-40px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(232,255,90,.07) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-tag {
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px solid rgba(232,255,90,.25);
+  color:var(--acc);font-size:11px;font-weight:700;
+  padding:5px 12px;border-radius:4px;
+  text-transform:uppercase;letter-spacing:1px;
+  margin-bottom:20px;
+}
+.hero h1 {
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(36px,8vw,68px);line-height:1.0;letter-spacing:-2px;
+  margin-bottom:14px;
+}
+.hero h1 em { color:var(--acc);font-style:normal; }
+.hero p { color:var(--text2);font-size:15px;line-height:1.65;max-width:500px;margin-bottom:32px; }
+
+.home-stats {
+  display:flex;gap:0;
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  margin-bottom:48px;width:fit-content;
+}
+.h-stat {
+  padding:14px 24px;text-align:center;
+  border-right:1px solid var(--border);
+}
+.h-stat:last-child{border-right:none;}
+.h-stat-n {
+  font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--acc);
+}
+.h-stat-l { font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px; }
+
+.sec-label {
+  font-size:11px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;
+}
+
+.topics-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  gap:10px;
+}
+.t-card {
+  background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:18px;cursor:pointer;transition:all .18s;
+  display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;
+}
+.t-card::before {
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(232,255,90,.05),transparent);
+  opacity:0;transition:opacity .18s;
+}
+.t-card:hover { border-color:rgba(232,255,90,.3);transform:translateY(-2px); }
+.t-card:hover::before { opacity:1; }
+
+.t-card-top { display:flex;align-items:center;gap:12px; }
+.t-icon {
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.t-name { font-family:'Syne',sans-serif;font-weight:700;font-size:14px; }
+.t-desc { font-size:12px;color:var(--text2);line-height:1.5; }
+.t-foot { display:flex;align-items:center;gap:8px; }
+.t-badge {
+  font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.tb-lines { background:rgba(78,158,255,.12);color:var(--java2); }
+.tb-done  { background:rgba(61,220,132,.12);color:var(--green); }
+.t-bar { height:2px;background:var(--border);border-radius:1px;flex:1; }
+.t-bar-fill { height:100%;border-radius:1px;background:var(--acc);transition:width .4s; }
+
+/* ── SHARED LESSON/PRACTICE LAYOUT ── */
+.lesson-wrap { max-width:780px;margin:0 auto;padding:20px 16px 60px; }
+
+.top-bar {
+  display:flex;align-items:center;gap:8px;margin-bottom:24px;flex-wrap:wrap;
+}
+.top-bar .top-info { flex:1;min-width:120px; }
+.back-btn {
+  width:36px;height:36px;border-radius:8px;border:1px solid var(--border);
+  background:var(--s1);color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  transition:all .15s;flex-shrink:0;
+}
+.back-btn:hover { border-color:var(--acc);color:var(--acc); }
+.top-info { flex:1;min-width:0; }
+.top-topic { font-family:'Syne',sans-serif;font-weight:800;font-size:15px; }
+.top-sub { font-size:12px;color:var(--text2);margin-top:1px; }
+
+.ai-btn {
+  display:flex;align-items:center;gap:6px;
+  background:rgba(78,158,255,.1);border:1px solid rgba(78,158,255,.25);
+  color:var(--java2);font-size:12px;font-weight:700;
+  padding:7px 12px;border-radius:8px;cursor:pointer;transition:all .15s;
+  font-family:'Manrope',sans-serif;white-space:nowrap;
+}
+.ai-btn:hover { background:rgba(78,158,255,.18); }
+
+/* step dots */
+.step-dots {
+  display:flex;gap:4px;margin-bottom:24px;flex-wrap:wrap;
+}
+.sdot {
+  height:4px;flex:1;min-width:14px;border-radius:2px;
+  background:var(--border);transition:background .3s;
+}
+.sdot.done { background:var(--green); }
+.sdot.active { background:var(--acc); }
+
+/* ── CODE VIEWER ── */
+.code-box {
+  background:#0a0c14;border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-bottom:20px;
+}
+.code-bar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--s1);border-bottom:1px solid var(--border);
+}
+.code-dots { display:flex;gap:5px; }
+.cd { width:10px;height:10px;border-radius:50%; }
+.code-fname { font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3); }
+.code-body {
+  padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;
+  overflow-x:auto;
+}
+.cl {
+  display:flex;gap:14px;padding:2px 6px;border-radius:5px;
+  cursor:pointer;transition:background .12s;white-space:pre;
+}
+.cl:hover { background:rgba(255,255,255,.03); }
+.cl.hi {
+  background:rgba(232,255,90,.07);
+  border-left:2px solid var(--acc);padding-left:8px;
+}
+.ln { color:var(--text3);user-select:none;min-width:18px;text-align:right; }
+.lc { color:var(--text); }
+/* syntax */
+.kw{color:var(--kw)} .str{color:var(--str)} .num{color:var(--num)}
+.tp{color:var(--type)} .cm{color:var(--cm);font-style:italic}
+.cls{color:var(--cls)} .mt{color:var(--mt)}
+
+/* ── EXPLANATION CARD ── */
+.exp-card {
+  background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:20px;margin-bottom:20px;animation:fadeUp .25s ease;
+}
+@keyframes fadeUp {
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.exp-ref {
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--acc);margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.exp-text { font-size:14px;line-height:1.75;color:var(--text); }
+.exp-text strong { color:var(--acc);font-weight:700; }
+.exp-text code {
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:var(--s3);padding:1px 5px;border-radius:4px;color:var(--cls);
+}
+.exp-tags { display:flex;flex-wrap:wrap;gap:6px;margin-top:12px; }
+.exp-tag {
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  background:rgba(78,158,255,.1);border:1px solid rgba(78,158,255,.18);
+  color:var(--java2);padding:2px 8px;border-radius:4px;
+}
+
+/* ── NAV ── */
+.nav-row { display:flex;gap:10px;flex-wrap:wrap; }
+.btn {
+  padding:12px 20px;border-radius:10px;border:none;cursor:pointer;
+  font-weight:700;font-size:14px;transition:all .15s;
+  display:flex;align-items:center;gap:6px;font-family:'Manrope',sans-serif;
+}
+.btn-acc {
+  background:var(--acc);color:#07080d;flex:1;justify-content:center;
+  min-width:160px;
+}
+.btn-acc:hover { background:var(--acc2);transform:translateY(-1px); }
+.btn-acc:active { transform:translateY(0); }
+.btn-ghost {
+  background:var(--s1);border:1px solid var(--border);color:var(--text2);
+}
+.btn-ghost:hover { border-color:var(--acc);color:var(--acc); }
+
+/* ── PRACTICE SCREEN ── */
+.prac-stack {
+  background:#0a0c14;border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-bottom:20px;
+}
+.prac-header {
+  padding:10px 14px;background:var(--s1);border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.prac-title { font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3); }
+.prac-phase-badge {
+  font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.pb-new  { background:rgba(232,255,90,.12);color:var(--acc); }
+.pb-rpt  { background:rgba(78,158,255,.12);color:var(--java2); }
+.pb-fin  { background:rgba(61,220,132,.12);color:var(--green); }
+
+.prac-lines { padding:14px; }
+
+/* confirmed (green locked) line */
+.pline-done {
+  display:flex;gap:14px;padding:4px 10px;border-radius:6px;
+  background:rgba(61,220,132,.06);border-left:2px solid var(--green);
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  line-height:1.75;white-space:pre;color:var(--green);
+  margin-bottom:4px;user-select:none;
+}
+.pline-done .ln { color:rgba(61,220,132,.35); }
+
+/* active input row */
+.pline-active {
+  display:flex;gap:0;align-items:flex-start;margin-bottom:4px;
+}
+.pline-num {
+  font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;
+  color:var(--text3);min-width:32px;padding:7px 0 7px 10px;user-select:none;
+}
+.code-input {
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;
+  color:var(--text);padding:7px 10px;resize:none;
+  border-left:2px solid var(--acc);min-height:36px;
+}
+.code-input::placeholder { color:var(--text3); }
+.code-input.ok  { border-left-color:var(--green);color:var(--green); }
+.code-input.err { border-left-color:var(--red);animation:shake .25s; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}
+}
+
+.fb-row {
+  display:flex;align-items:center;gap:10px;min-height:28px;
+  padding:0 4px;margin-bottom:12px;
+}
+.fb-msg { font-size:13px;font-weight:600; }
+.fb-ok  { color:var(--green); }
+.fb-err { color:var(--red); }
+.fb-att { margin-left:auto;font-size:12px;color:var(--text3); }
+
+.hint-row {
+  background:var(--s2);border:1px solid var(--border2);border-radius:8px;
+  padding:10px 14px;margin-bottom:14px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);
+  display:none;
+}
+.hint-row.show { display:block; }
+.hint-label { font-size:10px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;font-family:'Manrope',sans-serif; }
+
+/* instruction card */
+.instr-card {
+  background:var(--s1);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;margin-bottom:16px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.instr-icon { font-size:18px;flex-shrink:0;margin-top:1px; }
+.instr-text { font-size:13px;line-height:1.6;color:var(--text2); }
+.instr-text strong { color:var(--text); }
+
+/* ── QUIZ ── */
+.quiz-wrap { max-width:680px;margin:0 auto;padding:20px 16px 60px; }
+.quiz-q {
+  background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:22px;margin-bottom:16px;
+}
+.quiz-q-text { font-size:15px;font-weight:600;line-height:1.55;margin-bottom:0; }
+.quiz-code {
+  background:#0a0c14;border-radius:8px;padding:12px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--text2);margin-top:12px;overflow-x:auto;white-space:pre;
+  display:none;
+}
+.opts { display:flex;flex-direction:column;gap:8px; }
+.opt {
+  background:var(--s2);border:1.5px solid var(--border);border-radius:10px;
+  padding:13px 16px;cursor:pointer;transition:all .13s;
+  display:flex;align-items:center;gap:12px;font-size:14px;text-align:left;
+}
+.opt:hover { border-color:var(--java);background:rgba(78,158,255,.06); }
+.opt.sel  { border-color:var(--java);background:rgba(78,158,255,.1); }
+.opt.cor  { border-color:var(--green);background:rgba(61,220,132,.08);color:var(--green); }
+.opt.wrg  { border-color:var(--red);background:rgba(255,95,87,.08);color:var(--red); }
+.opt-let {
+  width:26px;height:26px;border-radius:5px;background:var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;font-family:'Syne',sans-serif;
+}
+.quiz-explain {
+  background:rgba(78,158,255,.06);border:1px solid rgba(78,158,255,.15);
+  border-radius:8px;padding:10px 14px;margin-top:12px;
+  font-size:13px;color:var(--text2);line-height:1.6;display:none;
+}
+.quiz-explain.show { display:block; }
+
+/* ── COMPLETE ── */
+.complete-wrap {
+  max-width:560px;margin:0 auto;padding:80px 24px;text-align:center;
+}
+.complete-emoji { font-size:80px;display:block;margin-bottom:24px;animation:pop .5s ease; }
+@keyframes pop {
+  0%{transform:scale(.5);opacity:0}
+  70%{transform:scale(1.1)}
+  100%{transform:scale(1);opacity:1}
+}
+.complete-title {
+  font-family:'Syne',sans-serif;font-weight:800;font-size:32px;margin-bottom:8px;
+}
+.complete-sub { color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:32px; }
+.xp-burst {
+  display:inline-block;
+  background:var(--acc);color:#07080d;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:28px;
+  padding:16px 40px;border-radius:14px;margin-bottom:36px;
+  animation:fadeUp .4s .2s both;
+}
+.complete-btns { display:flex;gap:10px;justify-content:center;flex-wrap:wrap; }
+
+/* ── AI PANEL ── */
+.ai-panel {
+  position:fixed;right:0;top:0;bottom:0;width:min(380px,100vw);
+  background:var(--s1);border-left:1px solid var(--border);
+  z-index:200;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+.ai-panel.open { transform:translateX(0); }
+.ai-ph {
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ai-ph-title { font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px; }
+.ai-live { width:7px;height:7px;border-radius:50%;background:var(--java);animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+.ai-msgs { flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px; }
+.ai-msg { font-size:13px;line-height:1.65;padding:11px 13px;border-radius:10px; }
+.ai-msg.bot { background:rgba(78,158,255,.07);border:1px solid rgba(78,158,255,.12); }
+.ai-msg.usr {
+  background:rgba(232,255,90,.06);border:1px solid rgba(232,255,90,.12);
+  align-self:flex-end;max-width:88%;
+}
+.ai-msg.ld { display:flex;gap:4px;align-items:center; }
+.ai-msg.ld span {
+  width:6px;height:6px;border-radius:50%;background:var(--java);
+  animation:db 1.2s infinite;
+}
+.ai-msg.ld span:nth-child(2){animation-delay:.2s}
+.ai-msg.ld span:nth-child(3){animation-delay:.4s}
+@keyframes db { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)} }
+.ai-input-row {
+  padding:10px;border-top:1px solid var(--border);display:flex;gap:8px;
+}
+.ai-in {
+  flex:1;background:var(--s2);border:1px solid var(--border);border-radius:8px;
+  padding:9px 12px;font-size:13px;color:var(--text);outline:none;
+  font-family:'Manrope',sans-serif;resize:none;max-height:80px;
+}
+.ai-in:focus { border-color:var(--java); }
+.ai-send {
+  background:var(--java);border:none;border-radius:8px;width:38px;height:38px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:#07080d;font-size:16px;font-weight:700;transition:background .15s;flex-shrink:0;
+}
+.ai-send:hover { background:var(--java2); }
+
+.overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  z-index:190;display:none;backdrop-filter:blur(3px);
+}
+.overlay.show { display:block; }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:var(--s2);border:1px solid var(--border2);border-radius:10px;
+  padding:10px 18px;font-size:13px;font-weight:600;z-index:300;
+  transition:transform .25s;white-space:nowrap;
+}
+.toast.up { transform:translateX(-50%) translateY(0); }
+.toast.g { border-color:var(--green);color:var(--green); }
+.toast.y { border-color:var(--acc);color:var(--acc); }
+.toast.r { border-color:var(--red);color:var(--red); }
+
+.confirm-box {
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--s1);border:1px solid var(--border2);border-radius:14px;
+  padding:16px 20px;z-index:310;min-width:260px;max-width:340px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  opacity:0;transition:all .2s;pointer-events:none;
+}
+.confirm-box.show { opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all; }
+.confirm-msg { font-size:14px;font-weight:600;margin-bottom:12px;text-align:center; }
+.confirm-btns { display:flex;gap:8px; }
+.confirm-btns button { flex:1;padding:9px;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:13px;font-family:'Manrope',sans-serif; }
+.confirm-yes { background:var(--red);color:#fff; }
+.confirm-no  { background:var(--s2);color:var(--text2);border:1px solid var(--border); }
+
+.t-reset-btn {
+  width:28px;height:28px;border-radius:6px;flex-shrink:0;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text3);font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.t-reset-btn:hover { border-color:var(--red);color:var(--red); }
+
+.eli5-card {
+  background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-bottom:20px;
+}
+.eli5-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  background:var(--s2);
+}
+.eli5-title {
+  font-size:12px;font-weight:700;color:var(--text2);
+  text-transform:uppercase;letter-spacing:1px;
+  display:flex;align-items:center;gap:6px;
+}
+.eli5-body {
+  padding:16px;font-size:14px;line-height:1.75;color:var(--text);
+  min-height:56px;
+}
+.eli5-body.loading {
+  display:flex;align-items:center;gap:6px;color:var(--text3);font-size:13px;
+}
+.eli5-dot {
+  width:6px;height:6px;border-radius:50%;background:var(--java);
+  animation:db 1.2s infinite;flex-shrink:0;
+}
+.eli5-dot:nth-child(2){animation-delay:.2s}
+.eli5-dot:nth-child(3){animation-delay:.4s}
+.eli5-cached-badge {
+  font-size:10px;color:var(--text3);
+  display:flex;align-items:center;gap:3px;
+}
+body.light .eli5-card { box-shadow:var(--card-shadow); }
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+@media(max-width:600px){
+  .hero h1{letter-spacing:-1px}
+  .nav-row{flex-direction:column}
+  .btn-acc{min-width:unset}
+  .home-stats{width:100%}
+  .h-stat{flex:1;padding:12px 8px}
+}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeAI()"></div>
+
+<!-- AI PANEL -->
+<div class="ai-panel" id="ai-panel">
+  <div class="ai-ph">
+    <div class="ai-ph-title"><div class="ai-live"></div>AI Наставник</div>
+    <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="closeAI()">✕</button>
+  </div>
+  <div class="ai-msgs" id="ai-msgs"></div>
+  <div class="ai-input-row">
+    <textarea class="ai-in" id="ai-in" rows="1" placeholder="Спроси что угодно…" onkeydown="aiKey(event)"></textarea>
+    <button class="ai-send" onclick="sendAI()">↑</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="confirm-box" id="confirm-box">
+  <div class="confirm-msg" id="confirm-msg"></div>
+  <div class="confirm-btns">
+    <button class="confirm-no" onclick="closeConfirm()">Отмена</button>
+    <button class="confirm-yes" onclick="doConfirm()">Да, сбросить</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="logo" onclick="goHome()">Java<span class="logo-dot">.</span>Dojo</div>
+  <div class="hdr-xp">
+    <span class="xp-val" id="hdr-xp-val">0 XP</span>
+    <span class="xp-pill" id="hdr-lvl">LVL 1</span>
+    <button id="theme-btn" onclick="toggleTheme()" title="Переключить тему" style="
+      background:none;border:1px solid var(--border2);border-radius:8px;
+      width:34px;height:34px;cursor:pointer;font-size:16px;
+      display:flex;align-items:center;justify-content:center;
+      transition:border-color .2s;color:var(--text2);
+    ">🌙</button>
+  </div>
+</header>
+
+<!-- ══ HOME ══ -->
+<div class="scr on" id="s-home">
+<div id="home-inner">
+<div class="lesson-wrap" style="max-width:860px">
+  <div class="hero">
+    <div class="hero-tag">☕ Готовься к зачёту, ИС-24</div>
+    <h1>Пиши Java<br><em>руками.</em></h1>
+    <p>Каждая страница — новая строка. Каждый переход — ввод всего что ты знаешь. К финалу темы ты напишешь всю программу с нуля.</p>
+    <div class="home-stats">
+      <div class="h-stat"><div class="h-stat-n" id="hs-topics">8</div><div class="h-stat-l">Тем</div></div>
+      <div class="h-stat"><div class="h-stat-n" id="hs-xp">0</div><div class="h-stat-l">XP</div></div>
+      <div class="h-stat"><div class="h-stat-n" id="hs-done">0</div><div class="h-stat-l">Пройдено</div></div>
+    </div>
+  </div>
+  <div class="sec-label">Выбери тему</div>
+  <div class="topics-grid" id="topics-grid"></div>
+</div>
+</div>
+</div>
+
+<!-- ══ LESSON ══ -->
+<div class="scr" id="s-lesson">
+<div class="lesson-wrap">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="top-info">
+      <div class="top-topic" id="l-topic"></div>
+      <div class="top-sub" id="l-sub"></div>
+    </div>
+    <button class="ai-btn" onclick="resetCurrentTopic()" style="background:rgba(255,95,87,.08);border-color:rgba(255,95,87,.25);color:var(--red)" title="Начать тему заново">↺ Начать заново</button>
+    <button class="ai-btn" onclick="openAI()">💬 Задать вопрос</button>
+  </div>
+  <div class="step-dots" id="l-dots"></div>
+  <div class="code-box">
+    <div class="code-bar">
+      <div class="code-dots">
+        <div class="cd" style="background:#ff5f57"></div>
+        <div class="cd" style="background:#febc2e"></div>
+        <div class="cd" style="background:#28c840"></div>
+      </div>
+      <div class="code-fname" id="l-fname"></div>
+      <div></div>
+    </div>
+    <div class="code-body" id="l-code"></div>
+  </div>
+  <div class="exp-card" id="l-exp">
+    <div class="exp-ref" id="l-exp-ref"></div>
+    <div class="exp-text" id="l-exp-text"></div>
+    <div class="exp-tags" id="l-exp-tags"></div>
+  </div>
+  <div class="eli5-card" id="eli5-card">
+    <div class="eli5-header">
+      <div class="eli5-title">🧒 Объясни как ребёнку</div>
+      <div class="eli5-cached-badge" id="eli5-badge"></div>
+    </div>
+    <div class="eli5-body" id="eli5-body">Загружаю объяснение…</div>
+  </div>
+  <div class="nav-row">
+    <button class="btn btn-ghost" id="btn-prev" onclick="lessonPrev()">← Назад</button>
+    <button class="btn btn-acc" id="btn-next" onclick="lessonNext()">Дальше →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ PRACTICE ══ -->
+<div class="scr" id="s-prac">
+<div class="lesson-wrap">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="top-info">
+      <div class="top-topic" id="p-topic"></div>
+      <div class="top-sub" id="p-sub"></div>
+    </div>
+    <button class="ai-btn" onclick="resetCurrentTopic()" style="background:rgba(255,95,87,.08);border-color:rgba(255,95,87,.25);color:var(--red)">↺ Начать заново</button>
+    <button class="ai-btn" onclick="openAI()">💬 Задать вопрос</button>
+  </div>
+
+  <div class="instr-card" id="p-instr">
+    <div class="instr-icon" id="p-icon">⌨️</div>
+    <div class="instr-text" id="p-instr-text"></div>
+  </div>
+
+  <div class="prac-stack">
+    <div class="prac-header">
+      <div class="prac-title" id="p-fname"></div>
+      <div class="prac-phase-badge" id="p-badge"></div>
+    </div>
+    <div class="prac-lines" id="p-lines"></div>
+  </div>
+
+  <div class="fb-row">
+    <div class="fb-msg" id="p-fb"></div>
+    <div class="fb-att" id="p-att"></div>
+  </div>
+
+  <div class="hint-row" id="p-hint">
+    <div class="hint-label">💡 Подсказка</div>
+    <div id="p-hint-text"></div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn btn-ghost" onclick="showHint()">Подсказка</button>
+    <button class="btn btn-acc" id="btn-check" onclick="checkLine()">Проверить ↵</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ QUIZ ══ -->
+<div class="scr" id="s-quiz">
+<div class="quiz-wrap">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="top-info">
+      <div class="top-topic" id="q-topic"></div>
+      <div class="top-sub" id="q-sub"></div>
+    </div>
+  </div>
+  <div class="quiz-q">
+    <div class="quiz-q-text" id="q-text"></div>
+    <div class="quiz-code" id="q-code"></div>
+    <div class="quiz-explain" id="q-explain"></div>
+  </div>
+  <div class="opts" id="q-opts"></div>
+  <div class="nav-row" style="margin-top:20px">
+    <button class="btn btn-acc" id="btn-qnext" onclick="quizNext()" style="display:none">Следующий →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ COMPLETE ══ -->
+<div class="scr" id="s-done">
+<div class="complete-wrap">
+  <span class="complete-emoji" id="done-emoji">🏆</span>
+  <div class="complete-title">Тема пройдена!</div>
+  <div class="complete-sub" id="done-sub"></div>
+  <div class="xp-burst" id="done-xp">+100 XP</div>
+  <div class="complete-btns">
+    <button class="btn btn-ghost" onclick="repeatTopic()">🔄 Повторить</button>
+    <button class="btn btn-acc" onclick="goHome()">← К темам</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════
+const TOPICS = [
+  {
+    id:'structure', name:'Структура программы', icon:'🏗️', iconBg:'rgba(232,255,90,.1)',
+    desc:'class, main, фигурные скобки, точки с запятой',
+    file:'Main.java', xp:120,
+    lines:[
+      { raw:'public class Main {',
+        html:'<span class="kw">public</span> <span class="kw">class</span> <span class="cls">Main</span> {',
+        ref:'Строка 1 — объявление класса',
+        exp:'<strong>public</strong> — модификатор: класс виден всем. <strong>class</strong> — ключевое слово, говорит Java: "дальше идёт класс". <strong>Main</strong> — имя класса; должно совпадать с именем файла (<code>Main.java</code>). Открывающая <strong>{</strong> начинает тело класса — всё что внутри принадлежит ему.',
+        tags:['public','class','Main','{'] },
+      { raw:'    public static void main(String[] args) {',
+        html:'    <span class="kw">public</span> <span class="kw">static</span> <span class="kw">void</span> <span class="mt">main</span>(<span class="tp">String</span>[] args) {',
+        ref:'Строка 2 — точка входа',
+        exp:'Это <strong>точка входа</strong> — именно отсюда JVM начинает выполнение. <strong>static</strong>: метод принадлежит классу, не объекту. <strong>void</strong>: ничего не возвращает. <strong>main</strong>: специальное имя, которое ищет JVM. <strong>String[] args</strong>: аргументы командной строки (пока не важны, но обязательны).',
+        tags:['static','void','main','String[]'] },
+      { raw:'        System.out.println("Hello, World!");',
+        html:'        <span class="cls">System</span>.out.<span class="mt">println</span>(<span class="str">"Hello, World!"</span>);',
+        ref:'Строка 3 — вывод на экран',
+        exp:'<strong>System</strong> — встроенный класс. <strong>out</strong> — поток вывода (консоль). <strong>println</strong> — "print line": выводит текст и переходит на новую строку. Всё в <strong>двойных кавычках</strong> — строковый литерал. <strong>Точка с запятой</strong> в конце обязательна — это конец инструкции.',
+        tags:['System.out.println','«строка»',';'] },
+      { raw:'    }',
+        html:'    }',
+        ref:'Строка 4 — закрытие main',
+        exp:'Закрывающая <strong>}</strong> заканчивает тело метода <code>main</code>. Каждая открывающая скобка должна иметь пару. Отступ в 4 пробела — это соглашение, Java его не требует, но читаемость страдает без него.',
+        tags:['}','блок','отступ'] },
+      { raw:'}',
+        html:'}',
+        ref:'Строка 5 — закрытие класса',
+        exp:'Последняя <strong>}</strong> закрывает тело класса <code>Main</code>. Программа готова: класс содержит метод main, метод содержит вывод. Так выглядит минимальная Java-программа.',
+        tags:['}','класс','структура'] },
+    ],
+    quiz:[
+      { q:'Что делает System.out.println()?', code:null,
+        opts:['Читает ввод с клавиатуры','Выводит текст и переходит на новую строку','Создаёт файл','Завершает программу'],
+        cor:1, exp:'println = print + newline. Выводит аргумент в консоль и добавляет символ новой строки \\n.' },
+      { q:'Зачем в конце каждой инструкции стоит ";"?', code:null,
+        opts:['Украшение','Конец комментария','Обязательный терминатор инструкции в Java','Только для println'],
+        cor:2, exp:'Точка с запятой — разделитель инструкций. Без неё компилятор выдаст ошибку.' },
+      { q:'Почему метод называется именно main?', code:null,
+        opts:['Красивое имя','JVM ищет именно его при запуске','Единственно допустимое имя','Потому что первый'],
+        cor:1, exp:'JVM при запуске ищет public static void main(String[] args) — это фиксированная сигнатура точки входа.' },
+    ]
+  },
+  {
+    id:'variables', name:'Переменные и типы', icon:'📦', iconBg:'rgba(78,158,255,.1)',
+    desc:'int, double, String, boolean — хранение данных',
+    file:'Variables.java', xp:110,
+    lines:[
+      { raw:'int age = 20;',
+        html:'<span class="tp">int</span> age = <span class="num">20</span>;',
+        ref:'int — целое число',
+        exp:'<strong>int</strong> — тип данных для целых чисел (от −2 млрд до +2 млрд). <strong>age</strong> — имя переменной. <strong>=</strong> — оператор присваивания (не "равно"!). <strong>20</strong> — значение. Это как ящик с именем: создаём ящик <code>age</code>, кладём в него 20.',
+        tags:['int','переменная','= присваивание'] },
+      { raw:'double price = 99.99;',
+        html:'<span class="tp">double</span> price = <span class="num">99.99</span>;',
+        ref:'double — дробное число',
+        exp:'<strong>double</strong> — тип для дробных чисел с двойной точностью. По умолчанию используй его вместо <code>float</code>. Разделитель дробной части — точка, не запятая! 99.99 — число с плавающей точкой.',
+        tags:['double','дробное','точка'] },
+      { raw:'String name = "Илья";',
+        html:'<span class="tp">String</span> name = <span class="str">"Илья"</span>;',
+        ref:'String — текст',
+        exp:'<strong>String</strong> — с заглавной буквы, это класс, не примитив. Хранит последовательность символов. Текстовые значения всегда в <strong>двойных кавычках</strong>. String — самый часто используемый тип в Java.',
+        tags:['String','«кавычки»','текст'] },
+      { raw:'boolean isStudent = true;',
+        html:'<span class="tp">boolean</span> isStudent = <span class="kw">true</span>;',
+        ref:'boolean — да/нет',
+        exp:'<strong>boolean</strong> — только два значения: <strong>true</strong> (истина) или <strong>false</strong> (ложь). Используется в условиях. Хорошая практика: называть булевы переменные с "is" или "has" — сразу понятно что это флаг.',
+        tags:['boolean','true','false'] },
+      { raw:'System.out.println(name + " is " + age);',
+        html:'<span class="cls">System</span>.out.<span class="mt">println</span>(name + <span class="str">" is "</span> + age);',
+        ref:'Конкатенация строк',
+        exp:'Оператор <strong>+</strong> для строк — это склеивание (конкатенация). <code>name + " is " + age</code> → "Илья is 20". Java автоматически конвертирует <code>int</code> в <code>String</code> при склеивании. Работает для любых типов.',
+        tags:['+','конкатенация','toString'] },
+    ],
+    quiz:[
+      { q:'Какой тип для числа 3.14?', code:null,
+        opts:['int','String','double','boolean'], cor:2,
+        exp:'double хранит дробные числа. int только целые. 3.14 — дробное.' },
+      { q:'Что выведет код?', code:'String s = "Java";\nint n = 21;\nSystem.out.println(s + n);',
+        opts:['"Java" + 21','Java21','Ошибка','21Java'], cor:1,
+        exp:'При конкатенации строки с числом Java конвертирует число в строку. Результат: Java21.' },
+      { q:'Чем String отличается от int?', code:null,
+        opts:['Ничем','String — класс для текста, int — примитив для чисел','String только для латиницы','int быстрее'], cor:1,
+        exp:'int — примитивный тип, хранит число напрямую. String — класс/объект, хранит массив символов. Поэтому String с заглавной.' },
+    ]
+  },
+  {
+    id:'input', name:'Ввод с клавиатуры', icon:'⌨️', iconBg:'rgba(61,220,132,.1)',
+    desc:'Scanner — читаем данные от пользователя',
+    file:'Input.java', xp:120,
+    lines:[
+      { raw:'import java.util.Scanner;',
+        html:'<span class="kw">import</span> java.util.<span class="cls">Scanner</span>;',
+        ref:'import — подключение класса',
+        exp:'<strong>import</strong> подключает внешний класс из стандартной библиотеки Java. Без этой строки Java не знает что такое Scanner. Это как "подключить модуль". import всегда в самом начале файла, до class.',
+        tags:['import','java.util','библиотека'] },
+      { raw:'Scanner sc = new Scanner(System.in);',
+        html:'<span class="cls">Scanner</span> sc = <span class="kw">new</span> <span class="cls">Scanner</span>(<span class="cls">System</span>.in);',
+        ref:'Создание объекта Scanner',
+        exp:'<strong>new</strong> создаёт объект. <strong>Scanner</strong> — класс для чтения данных. <strong>System.in</strong> — стандартный поток ввода (клавиатура). Итого: создаём "сканер клавиатуры" и называем его <code>sc</code>. Теперь через <code>sc</code> можем читать ввод.',
+        tags:['new','Scanner','System.in'] },
+      { raw:'System.out.print("Введи имя: ");',
+        html:'<span class="cls">System</span>.out.<span class="mt">print</span>(<span class="str">"Введи имя: "</span>);',
+        ref:'print vs println',
+        exp:'<strong>print</strong> без "ln" выводит текст БЕЗ переноса строки. Курсор остаётся на той же строке — пользователь введёт данные сразу после двоеточия. Используй print для приглашений к вводу, println когда нужен перенос.',
+        tags:['print','без переноса','prompt'] },
+      { raw:'String name = sc.nextLine();',
+        html:'<span class="tp">String</span> name = sc.<span class="mt">nextLine</span>();',
+        ref:'Чтение строки',
+        exp:'<strong>sc.nextLine()</strong> читает всю строку до нажатия Enter и возвращает <code>String</code>. Другие методы: <code>sc.nextInt()</code> — целое число, <code>sc.nextDouble()</code> — дробное. Результат сохраняем в переменную.',
+        tags:['nextLine()','nextInt()','nextDouble()'] },
+      { raw:'System.out.println("Привет, " + name + "!");',
+        html:'<span class="cls">System</span>.out.<span class="mt">println</span>(<span class="str">"Привет, "</span> + name + <span class="str">"!"</span>);',
+        ref:'Вывод результата',
+        exp:'Собираем ответ через конкатенацию. Если <code>name = "Маша"</code>, получим "Привет, Маша!". Три части склеиваются оператором <strong>+</strong>.',
+        tags:['+','конкатенация','println'] },
+    ],
+    quiz:[
+      { q:'Разница между print() и println()?', code:null,
+        opts:['Никакой','println добавляет перенос строки, print нет','print быстрее','println только для чисел'], cor:1,
+        exp:'println = print + newline. После вывода курсор переходит на новую строку. print оставляет его на той же.' },
+      { q:'Какой метод Scanner читает целое число?', code:null,
+        opts:['sc.nextLine()','sc.readInt()','sc.nextInt()','sc.getInt()'], cor:2,
+        exp:'nextInt() читает следующее целое число. nextLine() — всю строку. nextDouble() — дробное.' },
+      { q:'Зачем нужен import java.util.Scanner?', code:null,
+        opts:['Для красоты','Чтобы Java нашла класс Scanner в библиотеке','Без него Scanner медленнее','Не нужен'], cor:1,
+        exp:'Java не знает о Scanner без import. Эта строка говорит: найди класс в пакете java.util и подключи.' },
+    ]
+  },
+  {
+    id:'conditions', name:'Условия if/else', icon:'🔀', iconBg:'rgba(255,184,0,.1)',
+    desc:'Ветвление — if, else if, else',
+    file:'Conditions.java', xp:130,
+    lines:[
+      { raw:'int score = 75;',
+        html:'<span class="tp">int</span> score = <span class="num">75</span>;',
+        ref:'Переменная для проверки',
+        exp:'Объявляем <strong>int score = 75</strong>. Это оценка которую будем анализировать. В реальной программе score читался бы через Scanner. Именно это значение будет проходить через цепочку условий.',
+        tags:['int','переменная'] },
+      { raw:'if (score >= 90) {',
+        html:'<span class="kw">if</span> (score >= <span class="num">90</span>) {',
+        ref:'if — первое условие',
+        exp:'<strong>if</strong> — ключевое слово условия. В <strong>( )</strong> — условие, результат которого boolean: true или false. <strong>>=</strong> — "больше или равно". Если score >= 90 → выполняем блок { }. Операторы: <code>==</code> равно, <code>!=</code> не равно, <code>></code> <code><</code> <code>>=</code> <code><=</code>',
+        tags:['if','>=','==','!='] },
+      { raw:'    System.out.println("Отлично!");',
+        html:'    <span class="cls">System</span>.out.<span class="mt">println</span>(<span class="str">"Отлично!"</span>);',
+        ref:'Тело if',
+        exp:'Если условие <strong>true</strong> — выполняется всё внутри { }. При score=75: 75>=90 → <strong>false</strong>, этот блок пропускается. Отступ показывает что строка внутри блока.',
+        tags:['тело','true/false','отступ'] },
+      { raw:'} else if (score >= 60) {',
+        html:'} <span class="kw">else if</span> (score >= <span class="num">60</span>) {',
+        ref:'else if — второе условие',
+        exp:'<strong>else if</strong> проверяется только если предыдущий if был false. score=75: 75>=90 false → проверяем 75>=60 → <strong>true</strong>! Этот блок выполнится. Можно писать сколько угодно else if подряд.',
+        tags:['else if','цепочка'] },
+      { raw:'} else {',
+        html:'} <span class="kw">else</span> {',
+        ref:'else — запасной вариант',
+        exp:'<strong>else</strong> выполняется если ВСЕ предыдущие условия были false. Это "по умолчанию". У else нет условия в скобках.',
+        tags:['else','fallback','default'] },
+      { raw:'    System.out.println("Надо подтянуть");',
+        html:'    <span class="cls">System</span>.out.<span class="mt">println</span>(<span class="str">"Надо подтянуть"</span>);',
+        ref:'Тело else',
+        exp:'При score=75 выполнится блок else if (75>=60), поэтому эта строка не выполнится. Но если score был бы 40 — выполнилась бы именно она.',
+        tags:['тело else','вывод'] },
+      { raw:'}',
+        html:'}',
+        ref:'Закрытие конструкции',
+        exp:'Последняя <strong>}</strong> закрывает блок else и завершает всю конструкцию if/else if/else. После неё программа продолжается.',
+        tags:['}','конец','конструкция'] },
+    ],
+    quiz:[
+      { q:'Что выведет код при x = 5?', code:'int x = 5;\nif (x > 10) {\n    System.out.println("Большое");\n} else {\n    System.out.println("Маленькое");\n}',
+        opts:['Большое','Маленькое','Ничего','Ошибка'], cor:1,
+        exp:'5 > 10 — false. Выполняется блок else. Вывод: Маленькое.' },
+      { q:'Какой оператор проверяет РАВЕНСТВО?', code:null,
+        opts:['=','==','!=','>='], cor:1,
+        exp:'= это присваивание. == это сравнение (возвращает boolean). Частая ошибка: написать if(x = 5) вместо if(x == 5).' },
+      { q:'Когда выполняется блок else?', code:null,
+        opts:['Всегда','Никогда','Когда все if и else if были false','Только без else if'], cor:2,
+        exp:'else — запасной вариант. Выполняется только если ни одно условие выше не сработало.' },
+    ]
+  },
+  {
+    id:'loops', name:'Циклы for / while', icon:'🔄', iconBg:'rgba(168,85,247,.1)',
+    desc:'Повторение кода — for, while',
+    file:'Loops.java', xp:140,
+    lines:[
+      { raw:'for (int i = 0; i < 5; i++) {',
+        html:'<span class="kw">for</span> (<span class="tp">int</span> i = <span class="num">0</span>; i < <span class="num">5</span>; i++) {',
+        ref:'for — три части',
+        exp:'<strong>for</strong> содержит три части через ";": 1) <strong>int i = 0</strong> — инициализация счётчика; 2) <strong>i < 5</strong> — условие продолжения; 3) <strong>i++</strong> — шаг (увеличение на 1 после каждой итерации). Цикл выполнится при i=0,1,2,3,4 — итого 5 раз.',
+        tags:['for','i = 0','i < 5','i++'] },
+      { raw:'    System.out.println("i = " + i);',
+        html:'    <span class="cls">System</span>.out.<span class="mt">println</span>(<span class="str">"i = "</span> + i);',
+        ref:'Тело цикла',
+        exp:'Всё внутри { } выполняется на каждой итерации. Вывод: i=0, i=1, i=2, i=3, i=4. При i=5 условие i<5 становится false — цикл стопается.',
+        tags:['тело','итерация','i'] },
+      { raw:'}',
+        html:'}',
+        ref:'Закрытие for',
+        exp:'Закрывающая } завершает тело цикла for. Программа возвращается к проверке условия — так работает цикл.',
+        tags:['}','конец цикла'] },
+      { raw:'int n = 1;',
+        html:'<span class="tp">int</span> n = <span class="num">1</span>;',
+        ref:'Переменная для while',
+        exp:'Для <strong>while</strong> счётчик объявляется ДО цикла — в отличие от for где он внутри. Начнём с n=1.',
+        tags:['int','до цикла'] },
+      { raw:'while (n <= 3) {',
+        html:'<span class="kw">while</span> (n <= <span class="num">3</span>) {',
+        ref:'while — только условие',
+        exp:'<strong>while</strong> проще чем for: только условие в скобках. Выполняется пока условие true. Используй when не знаешь заранее количество итераций.',
+        tags:['while','условие'] },
+      { raw:'    n++;',
+        html:'    n++;',
+        ref:'Шаг счётчика',
+        exp:'<strong>n++</strong> — сокращение для n = n + 1. Увеличивает n на 1. ⚠️ Без этой строки — бесконечный цикл! n всегда будет 1, условие всегда true.',
+        tags:['n++','шаг','бесконечный цикл'] },
+      { raw:'}',
+        html:'}',
+        ref:'Закрытие while',
+        exp:'Закрывающая } завершает while. После трёх итераций (n=1,2,3) при n=4 условие n<=3 false — цикл завершится.',
+        tags:['}','конец while'] },
+    ],
+    quiz:[
+      { q:'Сколько раз выполнится тело?', code:'for (int i = 1; i <= 5; i++) {\n    System.out.println(i);\n}',
+        opts:['4','5','6','Бесконечно'], cor:1,
+        exp:'i принимает значения 1,2,3,4,5. При i=6 условие i<=5 false. Итого 5 итераций.' },
+      { q:'Что будет без n++ в while?', code:null,
+        opts:['Цикл не запустится','Бесконечный цикл','Ошибка компиляции','Одна итерация'], cor:1,
+        exp:'n останется 1. Условие n<=3 всегда true. Программа зависнет.' },
+      { q:'Когда лучше for, а не while?', code:null,
+        opts:['Никогда','Когда заранее известно число итераций','Только для строк','Всегда'], cor:1,
+        exp:'for — когда знаешь количество повторений. while — когда повторяешь до наступления условия.' },
+    ]
+  },
+  {
+    id:'arrays', name:'Массивы', icon:'📊', iconBg:'rgba(239,68,68,.1)',
+    desc:'Хранение коллекции значений, индексы',
+    file:'Arrays.java', xp:150,
+    lines:[
+      { raw:'int[] numbers = {10, 20, 30, 40, 50};',
+        html:'<span class="tp">int</span>[] numbers = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};',
+        ref:'Объявление массива',
+        exp:'<strong>int[]</strong> — тип "массив целых чисел". Квадратные скобки означают массив. <strong>{ }</strong> — инициализатор: значения через запятую. Массив хранит элементы одного типа, фиксированного размера.',
+        tags:['int[]','[ ]','{ }','массив'] },
+      { raw:'System.out.println(numbers[0]);',
+        html:'<span class="cls">System</span>.out.<span class="mt">println</span>(numbers[<span class="num">0</span>]);',
+        ref:'Доступ по индексу',
+        exp:'<strong>numbers[0]</strong> — первый элемент. Индексация с нуля: первый — [0], второй — [1], пятый — [4]. ⚠️ Обращение к несуществующему индексу вызовет <code>ArrayIndexOutOfBoundsException</code>.',
+        tags:['[0]','индекс','с нуля'] },
+      { raw:'numbers[2] = 99;',
+        html:'numbers[<span class="num">2</span>] = <span class="num">99</span>;',
+        ref:'Изменение элемента',
+        exp:'Элементы массива изменяемы: <strong>numbers[2] = 99</strong> заменяет третий элемент (30) на 99. Массив теперь: {10, 20, 99, 40, 50}. Длина при этом не меняется.',
+        tags:['изменение','[2]','присваивание'] },
+      { raw:'System.out.println(numbers.length);',
+        html:'<span class="cls">System</span>.out.<span class="mt">println</span>(numbers.<span class="mt">length</span>);',
+        ref:'.length — длина массива',
+        exp:'<strong>.length</strong> — свойство массива, возвращает количество элементов (5). Это свойство, не метод — без скобок! Используется для безопасного перебора.',
+        tags:['.length','5','без скобок'] },
+      { raw:'for (int i = 0; i < numbers.length; i++) {',
+        html:'<span class="kw">for</span> (<span class="tp">int</span> i = <span class="num">0</span>; i < numbers.<span class="mt">length</span>; i++) {',
+        ref:'Перебор массива',
+        exp:'Классический паттерн перебора. Условие <strong>i < numbers.length</strong> — безопаснее чем <code>i < 5</code>: если длина изменится, код всё равно корректен.',
+        tags:['перебор','i < length','паттерн'] },
+      { raw:'    System.out.println(numbers[i]);',
+        html:'    <span class="cls">System</span>.out.<span class="mt">println</span>(numbers[i]);',
+        ref:'Вывод элемента по индексу i',
+        exp:'<strong>numbers[i]</strong> — на каждой итерации i разное: 0,1,2,3,4. Так последовательно обращаемся к каждому элементу.',
+        tags:['numbers[i]','динамический индекс'] },
+      { raw:'}',
+        html:'}',
+        ref:'Конец перебора',
+        exp:'Закрываем цикл. После этого все 5 элементов выведены на экран.',
+        tags:['}','конец'] },
+    ],
+    quiz:[
+      { q:'Индекс последнего элемента массива длиной 5?', code:null,
+        opts:['5','4','0','1'], cor:1,
+        exp:'Индексация с нуля: 0,1,2,3,4. Последний — 4 (длина − 1).' },
+      { q:'Что такое numbers.length?', code:null,
+        opts:['Метод подсчёта','Свойство — количество элементов','Последний элемент','Максимальное значение'], cor:1,
+        exp:'.length — свойство (без скобок!). Возвращает количество элементов.' },
+      { q:'Что при обращении к numbers[10] (массив из 5 элементов)?', code:null,
+        opts:['Вернёт 0','Ничего','ArrayIndexOutOfBoundsException','null'], cor:2,
+        exp:'Выход за границы → исключение AIOOBE. Одна из самых частых ошибок в Java.' },
+    ]
+  },
+  {
+    id:'methods', name:'Методы', icon:'⚙️', iconBg:'rgba(20,184,166,.1)',
+    desc:'Объявление, параметры, return, вызов',
+    file:'Methods.java', xp:160,
+    lines:[
+      { raw:'public static int add(int a, int b) {',
+        html:'<span class="kw">public</span> <span class="kw">static</span> <span class="tp">int</span> <span class="mt">add</span>(<span class="tp">int</span> a, <span class="tp">int</span> b) {',
+        ref:'Объявление метода',
+        exp:'<strong>public static</strong> — модификаторы. <strong>int</strong> — тип возвращаемого значения. <strong>add</strong> — имя метода. <strong>(int a, int b)</strong> — параметры: два целых числа. Это сигнатура метода.',
+        tags:['public','static','int','add','параметры'] },
+      { raw:'    return a + b;',
+        html:'    <span class="kw">return</span> a + b;',
+        ref:'return — возврат значения',
+        exp:'<strong>return</strong> возвращает значение и завершает метод. Тип должен совпадать с объявленным (int). <code>a + b</code> — вычисляем сумму и возвращаем.',
+        tags:['return','возврат','a + b'] },
+      { raw:'}',
+        html:'}',
+        ref:'Закрытие метода add',
+        exp:'Закрывающая } завершает тело метода.',
+        tags:['}'] },
+      { raw:'public static void greet(String name) {',
+        html:'<span class="kw">public</span> <span class="kw">static</span> <span class="kw">void</span> <span class="mt">greet</span>(<span class="tp">String</span> name) {',
+        ref:'void — метод без возврата',
+        exp:'<strong>void</strong> — метод ничего не возвращает. Он выполняет действие (вывод). Параметр <strong>String name</strong>. void методы могут содержать <code>return;</code> без значения для досрочного выхода.',
+        tags:['void','без return','действие'] },
+      { raw:'    System.out.println("Привет, " + name);',
+        html:'    <span class="cls">System</span>.out.<span class="mt">println</span>(<span class="str">"Привет, "</span> + name);',
+        ref:'Тело void метода',
+        exp:'Метод выводит приветствие используя параметр <code>name</code>. Когда вызовем <code>greet("Аня")</code> — выведет "Привет, Аня".',
+        tags:['name','конкатенация'] },
+      { raw:'}',
+        html:'}',
+        ref:'Закрытие greet',
+        exp:'Закрываем тело метода greet.',
+        tags:['}'] },
+      { raw:'int result = add(3, 4);',
+        html:'<span class="tp">int</span> result = <span class="mt">add</span>(<span class="num">3</span>, <span class="num">4</span>);',
+        ref:'Вызов метода',
+        exp:'<strong>add(3, 4)</strong> — вызов метода с аргументами 3 и 4. Метод вернёт 7. Сохраняем в <code>int result</code>. Параметры (в объявлении) ≠ аргументы (при вызове).',
+        tags:['вызов','аргументы','result'] },
+    ],
+    quiz:[
+      { q:'Что означает void у метода?', code:null,
+        opts:['Метод быстрый','Метод ничего не возвращает','Метод скрытый','Метод статический'], cor:1,
+        exp:'void = пустота. Метод выполняет действия, не возвращая значения.' },
+      { q:'Что выведет код?', code:'static int sq(int x) {\n    return x * x;\n}\nSystem.out.println(sq(5));',
+        opts:['5','10','25','Ошибка'], cor:2,
+        exp:'sq(5) → x=5 → return 5*5 → 25.' },
+      { q:'Разница параметр/аргумент?', code:null,
+        opts:['То же самое','Параметр в объявлении, аргумент при вызове','Аргумент всегда число','Параметр только String'], cor:1,
+        exp:'Параметр: int a в (int a). Аргумент: 42 в foo(42). Параметр — переменная, аргумент — конкретное значение.' },
+    ]
+  },
+  {
+    id:'oop', name:'Основы ООП', icon:'🧱', iconBg:'rgba(99,102,241,.1)',
+    desc:'Класс, поля, конструктор, объект',
+    file:'Student.java', xp:170,
+    lines:[
+      { raw:'class Student {',
+        html:'<span class="kw">class</span> <span class="cls">Student</span> {',
+        ref:'Объявление класса',
+        exp:'<strong>class</strong> — шаблон для создания объектов. Студент — абстракция: у каждого студента есть имя, оценка. Мы описываем ШАБЛОН. Из него создадим конкретных студентов — объекты.',
+        tags:['class','шаблон','объект'] },
+      { raw:'    String name;',
+        html:'    <span class="tp">String</span> name;',
+        ref:'Поле — имя',
+        exp:'<strong>Поля</strong> (fields) — переменные внутри класса, описывают данные объекта. <code>String name</code> — имя студента. У каждого объекта будут свои значения.',
+        tags:['поле','String','состояние'] },
+      { raw:'    int grade;',
+        html:'    <span class="tp">int</span> grade;',
+        ref:'Поле — оценка',
+        exp:'Второе поле — <code>int grade</code> (оценка). Классы обычно имеют несколько полей, описывающих свойства объекта.',
+        tags:['поле','int','grade'] },
+      { raw:'    Student(String name, int grade) {',
+        html:'    <span class="cls">Student</span>(<span class="tp">String</span> name, <span class="tp">int</span> grade) {',
+        ref:'Конструктор',
+        exp:'<strong>Конструктор</strong> — метод, вызываемый при создании объекта через <code>new</code>. Имя совпадает с именем класса. Нет return type (даже void). Принимает параметры для инициализации полей.',
+        tags:['конструктор','new','инициализация'] },
+      { raw:'        this.name = name;',
+        html:'        <span class="kw">this</span>.name = name;',
+        ref:'this — разграничение',
+        exp:'<strong>this.name</strong> — поле объекта. <strong>name</strong> (без this) — параметр конструктора. Они одинаково называются, поэтому <code>this</code> явно указывает на поле.',
+        tags:['this','поле vs параметр'] },
+      { raw:'        this.grade = grade;',
+        html:'        <span class="kw">this</span>.grade = grade;',
+        ref:'Инициализация grade',
+        exp:'Аналогично: присваиваем полю <code>this.grade</code> значение параметра <code>grade</code>.',
+        tags:['this.grade','grade'] },
+      { raw:'    }',
+        html:'    }',
+        ref:'Конец конструктора',
+        exp:'Закрываем тело конструктора.',
+        tags:['}'] },
+      { raw:'}',
+        html:'}',
+        ref:'Конец класса Student',
+        exp:'Закрываем класс Student.',
+        tags:['}','конец класса'] },
+      { raw:'Student s = new Student("Аня", 5);',
+        html:'<span class="cls">Student</span> s = <span class="kw">new</span> <span class="cls">Student</span>(<span class="str">"Аня"</span>, <span class="num">5</span>);',
+        ref:'Создание объекта',
+        exp:'<strong>new Student("Аня", 5)</strong> — создаём объект. <code>new</code> выделяет память, вызывает конструктор. <code>s</code> — ссылка на объект. Теперь: <code>s.name</code> = "Аня", <code>s.grade</code> = 5.',
+        tags:['new','объект','ссылка','s.name'] },
+    ],
+    quiz:[
+      { q:'Что такое конструктор?', code:null,
+        opts:['Метод вывода объекта','Метод создания и инициализации объекта','Класс без полей','Синоним main'], cor:1,
+        exp:'Конструктор вызывается через new и инициализирует поля. Имя = имя класса, нет return type.' },
+      { q:'Зачем ключевое слово this?', code:null,
+        opts:['Красота','Ссылка на текущий объект — разграничивает поле и параметр','Создаёт объект','Удаляет'], cor:1,
+        exp:'this.name — поле. name — параметр. Когда имена одинаковые, this.name явно указывает на поле.' },
+      { q:'Что делает new?', code:null,
+        opts:['Объявляет класс','Выделяет память и создаёт объект, вызывая конструктор','Удаляет объект','Копирует'], cor:1,
+        exp:'new выделяет память в heap, создаёт объект, вызывает конструктор. Возвращает ссылку.' },
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+const MAX_REPLAY = 5; // max lines to replay
+
+let G = {
+  xp: 0,
+  topicState: {}, // id -> { phase:'lesson'|'practice'|'quiz'|'done', lessonStep:0, pracPhase:'step'|'replay'|'final', pracLineIdx:0, pracReplayStart:0, pracAttempts:0, quizIdx:0, done:false }
+  cur: null,
+  aiCtx: '',
+};
+
+function ts(id) {
+  if (!G.topicState[id]) G.topicState[id] = { phase:'lesson', lessonStep:0, pracPhase:'step', pracLineIdx:0, pracReplayStart:0, pracAttempts:0, quizIdx:0, done:false };
+  return G.topicState[id];
+}
+
+function save() { try { localStorage.setItem('jdojo2', JSON.stringify(G)); } catch(e){} }
+function load() { try { const d=localStorage.getItem('jdojo2'); if(d) G={...G,...JSON.parse(d)}; } catch(e){} }
+
+// ═══════════════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  window.scrollTo(0,0);
+}
+
+function goHome() { renderHome(); show('home'); }
+
+function renderHome() {
+  const grid = document.getElementById('topics-grid');
+  grid.innerHTML = '';
+  let done = 0;
+
+  TOPICS.forEach(t => {
+    const s = ts(t.id);
+    if(s.done) done++;
+    const pct = s.done ? 100 : s.phase==='practice' ? 35 : s.phase==='quiz' ? 70 : (s.lessonStep / t.lines.length * 35);
+
+    const c = document.createElement('div');
+    c.className = 't-card';
+
+    const hasProgress = s.lessonStep > 0 || s.phase !== 'lesson' || s.done;
+
+    c.innerHTML = `
+      <div class="t-card-top">
+        <div class="t-icon" style="background:${t.iconBg}">${t.icon}</div>
+        <div style="flex:1">
+          <div class="t-name">${t.name}</div>
+        </div>
+      </div>
+      <div class="t-desc">${t.desc}</div>
+      <div class="t-foot">
+        <span class="t-badge tb-lines">${t.lines.length} строк</span>
+        ${s.done ? '<span class="t-badge tb-done">✓ Готово</span>' : ''}
+        <div class="t-bar"><div class="t-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+
+    // attach events after innerHTML (so handlers work reliably)
+    c.addEventListener('click', () => startTopic(t.id));
+
+
+    grid.appendChild(c);
+  });
+
+  document.getElementById('hs-xp').textContent = G.xp;
+  document.getElementById('hs-done').textContent = done;
+  updateHdr();
+}
+
+function updateHdr() {
+  const lvl = Math.floor(G.xp/200)+1;
+  document.getElementById('hdr-xp-val').textContent = G.xp+' XP';
+  document.getElementById('hdr-lvl').textContent = 'LVL '+lvl;
+}
+
+// ═══════════════════════════════════════════
+//  TOPIC ENTRY
+// ═══════════════════════════════════════════
+function startTopic(id) {
+  G.cur = id;
+  const s = ts(id);
+  if(s.phase === 'lesson') startLesson();
+  else if(s.phase === 'practice') startPractice();
+  else if(s.phase === 'quiz') startQuiz();
+  else { s.phase='lesson'; s.lessonStep=0; startLesson(); }
+}
+
+// ═══════════════════════════════════════════
+//  LESSON PHASE
+// ═══════════════════════════════════════════
+function startLesson() {
+  const t = TOPICS.find(x=>x.id===G.cur);
+  const s = ts(G.cur);
+  renderLesson(t, s.lessonStep, false);
+  show('lesson');
+}
+
+function renderLesson(t, step, isPreview) {
+  const s = ts(G.cur);
+  const realStep = s.lessonStep; // actual progress step
+
+  document.getElementById('l-topic').textContent = t.icon+' '+t.name;
+
+  if(isPreview) {
+    document.getElementById('l-sub').textContent =
+      `👁 Просмотр строки ${step+1} — прогресс: шаг ${realStep+1} из ${t.lines.length}`;
+  } else {
+    document.getElementById('l-sub').textContent =
+      `Шаг ${realStep+1} из ${t.lines.length} — читаем, понимаем`;
+  }
+
+  document.getElementById('l-fname').textContent = t.file;
+
+  // dots always reflect REAL progress, not preview step
+  const dots = document.getElementById('l-dots');
+  dots.innerHTML = '';
+  t.lines.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='sdot'+(i<realStep?' done':i===realStep?' active':'');
+    dots.appendChild(d);
+  });
+
+  // code — highlight viewed line, mark learned lines
+  const cb = document.getElementById('l-code');
+  cb.innerHTML = '';
+  t.lines.forEach((ln,i)=>{
+    const r=document.createElement('div');
+    let cls = 'cl';
+    if(i === step) cls += ' hi';
+    r.className = cls;
+    // only allow clicking lines up to realStep (already studied)
+    if(i <= realStep) {
+      r.onclick=()=>jumpLesson(i);
+      r.style.cursor='pointer';
+    } else {
+      r.style.cursor='default';
+      r.style.opacity='0.35'; // future lines dimmed
+    }
+    r.innerHTML=`<span class="ln">${i+1}</span><span class="lc">${ln.html}</span>`;
+    cb.appendChild(r);
+  });
+
+  // explanation for viewed line
+  const ln = t.lines[step];
+  document.getElementById('l-exp-ref').textContent = '📌 '+ln.ref;
+  document.getElementById('l-exp-text').innerHTML = ln.exp;
+  document.getElementById('l-exp-tags').innerHTML = ln.tags.map(g=>`<span class="exp-tag">${g}</span>`).join('');
+
+  // Prev/Next always based on REAL progress
+  document.getElementById('btn-prev').style.display = 'none'; // remove prev — no going back
+  const isLastReal = realStep === t.lines.length - 1;
+  if(isPreview) {
+    document.getElementById('btn-next').textContent = isLastReal ? '▶ К практике' : `Дальше → (строка ${realStep+2})`;
+  } else {
+    document.getElementById('btn-next').textContent = isLastReal ? '▶ К практике' : 'Дальше →';
+  }
+
+  G.aiCtx = `Тема: ${t.name}. Текущая строка: ${ln.ref}. Код: ${ln.raw}. Объяснение: ${ln.exp.replace(/<[^>]+>/g,' ')}`;
+
+  // load ELI5 for viewed line
+  loadEli5(t.id, step, ln.raw, ln.exp);
+}
+
+function jumpLesson(i) {
+  // Only changes the VIEW — does NOT affect progress (s.lessonStep)
+  // User can browse any line's explanation, but "Дальше" always advances from real progress
+  const t = TOPICS.find(x=>x.id===G.cur);
+  renderLesson(t, i, true); // true = preview mode
+}
+
+function lessonNext() {
+  const t = TOPICS.find(x=>x.id===G.cur);
+  const s = ts(G.cur);
+  // After each lesson step → immediately go to practice (lines 0..lessonStep)
+  const isFinalLine = s.lessonStep === t.lines.length - 1;
+  s.phase = 'practice';
+  s.pracPhase = isFinalLine ? 'final' : 'step';
+  s.pracLineIdx = s.lessonStep;
+  s.pracAttempts = 0;
+  save();
+  startPractice();
+}
+
+function lessonPrev() {
+  // Disabled — progress is linear, no going back
+  // User can click already-studied lines in code view to review them
+}
+
+// ═══════════════════════════════════════════
+//  PRACTICE PHASE
+// ═══════════════════════════════════════════
+/*
+  pracPhase:
+    'new'    — type only the newly learned line (current lessonStep line)
+    'replay' — type last min(pracLineIdx+1, MAX_REPLAY) lines in order
+    'final'  — type ALL lines in order (triggered after last line's replay)
+*/
+
+let pracState = {
+  lines: [],
+  linePos: 0,
+  confirmed: [],
+  attempts: 0,
+  hintShown: false,  // track per-line hint state
+};
+
+function startPractice() {
+  const t = TOPICS.find(x=>x.id===G.cur);
+  const s = ts(G.cur);
+  buildPracLines(t, s);
+  renderPractice(t, s);
+  show('prac');
+}
+
+function buildPracLines(t, s) {
+  // pracPhase:
+  //  'step'  — type lines 0..pracLineIdx (all learned so far, max MAX_REPLAY)
+  //  'final' — type ALL lines
+  const lineIdx = s.pracLineIdx;
+
+  if(s.pracPhase === 'final') {
+    pracState.lines = t.lines.map((ln,i)=>({ raw: ln.raw, num: i+1 }));
+  } else {
+    // 'step': lines from max(0, lineIdx-MAX_REPLAY+1) to lineIdx inclusive
+    const start = Math.max(0, lineIdx - MAX_REPLAY + 1);
+    pracState.lines = [];
+    for(let i=start; i<=lineIdx; i++) {
+      pracState.lines.push({ raw: t.lines[i].raw, num: i+1 });
+    }
+  }
+
+  pracState.linePos = 0;
+  pracState.confirmed = [];
+  pracState.attempts = 0;
+  pracState.hintShown = false;
+}
+
+function renderPractice(t, s) {
+  document.getElementById('p-topic').textContent = t.icon+' '+t.name;
+  document.getElementById('p-fname').textContent = t.file;
+
+  const lineIdx = s.pracLineIdx;
+  let instr, badge, icon;
+  if(s.pracPhase === 'final') {
+    instr = `<strong>Финальный прогон!</strong> Ты изучил все строки. Напиши всю программу с нуля по памяти.`;
+    badge = '<span class="prac-phase-badge pb-fin">Финал</span>';
+    icon = '🏁';
+  } else {
+    const count = pracState.lines.length;
+    instr = count === 1
+      ? `Ты только что изучил строку <strong>${pracState.lines[0].num}</strong>. Введи её по памяти.`
+      : `Введи строки <strong>${pracState.lines[0].num}–${pracState.lines[pracState.lines.length-1].num}</strong> по памяти — одну за другой.`;
+    badge = '<span class="prac-phase-badge pb-new">Практика</span>';
+    icon = '✍️';
+  }
+  document.getElementById('p-sub').textContent = `Строки: ${pracState.lines.map(l=>l.num).join(', ')}`;
+  document.getElementById('p-instr-text').innerHTML = instr;
+  document.getElementById('p-icon').textContent = icon;
+  document.getElementById('p-badge').innerHTML = badge;
+
+  G.aiCtx = `Тема: ${t.name}. Практика: пользователь вводит строку "${pracState.lines[pracState.linePos]?.raw}".`;
+
+  renderPracLines();
+  clearFeedback();
+}
+
+function renderPracLines() {
+  const container = document.getElementById('p-lines');
+  container.innerHTML = '';
+
+  pracState.lines.forEach((ln, idx) => {
+    if(idx < pracState.linePos) {
+      // confirmed — green locked
+      const d = document.createElement('div');
+      d.className = 'pline-done';
+      d.innerHTML = `<span class="ln">${ln.num}</span>${escHtml(ln.raw)}`;
+      container.appendChild(d);
+    } else if(idx === pracState.linePos) {
+      // active input
+      const wrap = document.createElement('div');
+      wrap.className = 'pline-active';
+      wrap.innerHTML = `<div class="pline-num">${ln.num}</div>`;
+      const inp = document.createElement('textarea');
+      inp.className = 'code-input';
+      inp.id = 'prac-inp';
+      inp.rows = 1;
+      inp.placeholder = `Строка ${ln.num}…`;
+      inp.setAttribute('autocomplete','off');
+      inp.setAttribute('autocorrect','off');
+      inp.setAttribute('autocapitalize','off');
+      inp.setAttribute('spellcheck','false');
+      inp.onkeydown = e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();checkLine();} };
+      inp.oninput = () => { inp.style.height='auto'; inp.style.height=inp.scrollHeight+'px'; };
+      wrap.appendChild(inp);
+      container.appendChild(wrap);
+      setTimeout(()=>inp.focus(),80);
+    }
+    // future lines — not shown (model A: only green above + one input)
+  });
+}
+
+function checkLine() {
+  const t = TOPICS.find(x=>x.id===G.cur);
+  const s = ts(G.cur);
+  const inp = document.getElementById('prac-inp');
+  if(!inp) return;
+
+  const user = inp.value.trim().replace(/\s+/g,' ');
+  const target = pracState.lines[pracState.linePos].raw.trim().replace(/\s+/g,' ');
+  pracState.attempts++;
+  document.getElementById('p-att').textContent = `Попытка ${pracState.attempts}`;
+
+  if(user === target) {
+    // correct
+    inp.className = 'code-input ok';
+    showFb('✅ Верно!','fb-ok');
+
+    const isFirst = pracState.attempts === 1;
+    const xpGain = isFirst ? 10 : 5;
+    G.xp += xpGain;
+    updateHdr();
+    save();
+    showToast(`+${xpGain} XP`,'g');
+
+    pracState.linePos++;
+    pracState.attempts = 0;
+    pracState.hintShown = false;
+    document.getElementById('p-hint').classList.remove('show');
+    document.getElementById('p-hint-text').textContent = '';
+    document.getElementById('p-att').textContent = '';
+
+    if(pracState.linePos >= pracState.lines.length) {
+      // completed this phase
+      setTimeout(()=> advancePracPhase(t, s), 600);
+    } else {
+      setTimeout(()=>{ clearFeedback(); renderPracLines(); }, 500);
+    }
+  } else {
+    inp.className = 'code-input err';
+    // find first diff char
+    const diff = firstDiff(user, target);
+    showFb(`❌ Ошибка в позиции ${diff+1}…`,'fb-err');
+    if(pracState.attempts >= 2 && !pracState.hintShown) showHint();
+    setTimeout(()=>{ inp.className='code-input'; inp.focus(); },500);
+  }
+}
+
+function firstDiff(a, b) {
+  const len = Math.min(a.length, b.length);
+  for(let i=0;i<len;i++) if(a[i]!==b[i]) return i;
+  return len;
+}
+
+function advancePracPhase(t, s) {
+  if(s.pracPhase === 'final') {
+    // All done → quiz
+    G.xp += 50;
+    updateHdr();
+    save();
+    showToast('+50 XP бонус! 🎉','y');
+    setTimeout(()=>{
+      s.phase = 'quiz';
+      s.quizIdx = 0;
+      save();
+      startQuiz();
+    }, 700);
+  } else {
+    // 'step' done → go to next lesson line
+    const nextLine = s.pracLineIdx + 1;
+    if(nextLine >= t.lines.length) {
+      // no more lines — shouldn't happen, but safety: go to quiz
+      s.phase = 'quiz'; s.quizIdx = 0; save(); startQuiz();
+    } else {
+      s.lessonStep = nextLine;
+      s.phase = 'lesson';
+      save();
+      renderLesson(t, nextLine, false);
+      show('lesson');
+    }
+  }
+}
+
+function showHint() {
+  const ln = pracState.lines[pracState.linePos];
+  if(!ln) return;
+  pracState.hintShown = true;
+  const n = Math.max(8, Math.floor(ln.raw.length * 0.4));
+  const hint = ln.raw.substring(0, n) + '…';
+  document.getElementById('p-hint-text').textContent = hint;
+  document.getElementById('p-hint').classList.add('show');
+}
+
+function showFb(msg, cls) {
+  const el = document.getElementById('p-fb');
+  el.textContent = msg;
+  el.className = 'fb-msg '+cls;
+}
+function clearFeedback() {
+  document.getElementById('p-fb').textContent='';
+  document.getElementById('p-fb').className='fb-msg';
+  document.getElementById('p-att').textContent='';
+  document.getElementById('p-hint').classList.remove('show');
+  document.getElementById('p-hint-text').textContent='';
+}
+
+// ═══════════════════════════════════════════
+//  QUIZ PHASE
+// ═══════════════════════════════════════════
+function startQuiz() {
+  const t = TOPICS.find(x=>x.id===G.cur);
+  const s = ts(G.cur);
+  renderQuiz(t, s.quizIdx);
+  show('quiz');
+}
+
+function renderQuiz(t, qi) {
+  const q = t.quiz[qi];
+  document.getElementById('q-topic').textContent = t.icon+' '+t.name;
+  document.getElementById('q-sub').textContent = `Вопрос ${qi+1} из ${t.quiz.length}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  const qc = document.getElementById('q-code');
+  if(q.code) { qc.style.display='block'; qc.textContent=q.code; }
+  else qc.style.display='none';
+
+  document.getElementById('q-explain').textContent = q.exp;
+  document.getElementById('q-explain').className='quiz-explain';
+
+  const opts = document.getElementById('q-opts');
+  opts.innerHTML='';
+  const lets=['A','B','C','D'];
+  q.opts.forEach((o,i)=>{
+    const d=document.createElement('div');
+    d.className='opt';
+    d.innerHTML=`<span class="opt-let">${lets[i]}</span>${o}`;
+    d.onclick=()=>selectOpt(d,i,q.cor,q.exp,t,qi);
+    opts.appendChild(d);
+  });
+  document.getElementById('btn-qnext').style.display='none';
+}
+
+let quizAnswered=false;
+function selectOpt(el, idx, cor, exp, t, qi) {
+  if(quizAnswered) return;
+  quizAnswered=true;
+  document.querySelectorAll('.opt')[cor].classList.add('cor');
+  if(idx===cor) {
+    el.classList.add('cor');
+    G.xp+=10; updateHdr(); save();
+    showToast('+10 XP','g');
+  } else {
+    el.classList.add('wrg');
+    showToast('Неверно','r');
+  }
+  const expEl=document.getElementById('q-explain');
+  expEl.textContent=exp;
+  expEl.classList.add('show');
+  document.getElementById('btn-qnext').style.display='flex';
+}
+
+function quizNext() {
+  const t = TOPICS.find(x=>x.id===G.cur);
+  const s = ts(G.cur);
+  quizAnswered=false;
+  s.quizIdx++;
+  if(s.quizIdx < t.quiz.length) {
+    save();
+    renderQuiz(t, s.quizIdx);
+  } else {
+    completeTopic(t,s);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  COMPLETE
+// ═══════════════════════════════════════════
+function completeTopic(t,s) {
+  if(!s.done) {
+    s.done=true; s.phase='done';
+    G.xp+=t.xp; updateHdr(); save();
+  }
+  document.getElementById('done-emoji').textContent = '🏆';
+  document.getElementById('done-sub').textContent = `Ты прошёл тему "${t.name}": изучил каждую строку, набрал её руками, прошёл тест.`;
+  document.getElementById('done-xp').textContent = `+${t.xp} XP`;
+  show('done');
+}
+
+function repeatTopic() {
+  const s = ts(G.cur);
+  s.phase='lesson'; s.lessonStep=0;
+  s.pracPhase='step'; s.pracLineIdx=0; s.pracAttempts=0;
+  s.quizIdx=0; s.done=false;
+  save();
+  startTopic(G.cur);
+}
+
+// ═══════════════════════════════════════════
+//  AI PANEL
+// ═══════════════════════════════════════════
+function openAI() {
+  document.getElementById('ai-panel').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  const msgs=document.getElementById('ai-msgs');
+  if(!msgs.children.length) addMsg('bot','👋 Привет! Задавай любые вопросы по Java — объясню простыми словами на русском.');
+}
+function closeAI() {
+  document.getElementById('ai-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+function addMsg(role,text) {
+  const msgs=document.getElementById('ai-msgs');
+  const d=document.createElement('div');
+  d.className='ai-msg '+role;
+  d.textContent=text;
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return d;
+}
+function addLoader() {
+  const msgs=document.getElementById('ai-msgs');
+  const d=document.createElement('div');
+  d.className='ai-msg ld bot';
+  d.innerHTML='<span></span><span></span><span></span>';
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return d;
+}
+async function sendAI() {
+  const inp=document.getElementById('ai-in');
+  const txt=inp.value.trim(); if(!txt) return;
+  inp.value='';
+  addMsg('usr',txt);
+  const ld=addLoader();
+  try {
+    const r=await fetch('https://little-lake-e28a.inikonoff.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        max_tokens:1000,
+        messages:[
+          {role:'system',content:`Ты дружелюбный наставник по Java для студентов-новичков. Отвечай на русском языке, кратко (3-5 предложений), используй эмодзи. Текущий контекст урока: ${G.aiCtx}`},
+          {role:'user',content:txt}
+        ]
+      })
+    });
+    const d=await r.json();
+    ld.remove();
+    const reply = d.choices?.[0]?.message?.content || 'Не удалось получить ответ.';
+    addMsg('bot', reply);
+  } catch(e) {
+    ld.remove();
+    addMsg('bot','⚠️ Ошибка соединения. Проверь интернет.');
+  }
+}
+function aiKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();} }
+
+// ═══════════════════════════════════════════
+//  CONFIRM DIALOG
+// ═══════════════════════════════════════════
+let _confirmCb = null;
+function showConfirm(msg, cb) {
+  _confirmCb = cb;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-box').classList.add('show');
+}
+function closeConfirm() {
+  _confirmCb = null;
+  document.getElementById('confirm-box').classList.remove('show');
+}
+function doConfirm() {
+  const cb = _confirmCb;
+  closeConfirm();
+  if(cb) cb();
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function showToast(msg,cls='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast up '+cls;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.className='toast',2200);
+}
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════
+//  ELI5 — "Объясни как ребёнку"
+// ═══════════════════════════════════════════
+const ELI5_CACHE_KEY = 'jdojo_eli5_';
+
+function eli5CacheKey(topicId, lineIdx) {
+  return ELI5_CACHE_KEY + topicId + '_' + lineIdx;
+}
+
+function getEli5Cache(topicId, lineIdx) {
+  try { return localStorage.getItem(eli5CacheKey(topicId, lineIdx)); } catch(e){ return null; }
+}
+
+function setEli5Cache(topicId, lineIdx, text) {
+  try { localStorage.setItem(eli5CacheKey(topicId, lineIdx), text); } catch(e){}
+}
+
+async function loadEli5(topicId, lineIdx, lineRaw, lineExp) {
+  const body = document.getElementById('eli5-body');
+  const badge = document.getElementById('eli5-badge');
+  if(!body) return;
+
+  // check cache first
+  const cached = getEli5Cache(topicId, lineIdx);
+  if(cached) {
+    body.innerHTML = cached;
+    body.classList.remove('loading');
+    badge.textContent = '⚡ из кэша';
+    return;
+  }
+
+  // show loading dots
+  body.className = 'eli5-body loading';
+  body.innerHTML = '<div class="eli5-dot"></div><div class="eli5-dot"></div><div class="eli5-dot"></div>';
+  badge.textContent = '';
+
+  const prompt = `Объясни эту строку Java-кода как будто объясняешь ребёнку 10 лет. Используй простые слова, бытовые метафоры и аналогии из обычной жизни. Не используй технический жаргон. 1-3 коротких абзаца. Без кодовых блоков.
+
+Строка кода: ${lineRaw}
+Техническое объяснение: ${lineExp.replace(/<[^>]+>/g,' ')}`;
+
+  try {
+    const r = await fetch('https://little-lake-e28a.inikonoff.workers.dev', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 400,
+        messages: [
+          {role:'system', content:'Ты объясняешь программирование детям. Отвечай по-русски, просто и с юмором.'},
+          {role:'user', content: prompt}
+        ]
+      })
+    });
+    const d = await r.json();
+    const text = d.choices?.[0]?.message?.content || '⚠️ Не удалось загрузить объяснение.';
+    setEli5Cache(topicId, lineIdx, text);
+    body.className = 'eli5-body';
+    body.textContent = text;
+    badge.textContent = '⚡ сохранено';
+    setTimeout(()=>{ badge.textContent = ''; }, 2000);
+  } catch(e) {
+    body.className = 'eli5-body';
+    body.textContent = '⚠️ Нет соединения. Проверь интернет.';
+  }
+}
+
+// ═══════════════════════════════════════════
+//  RESET CURRENT TOPIC (from lesson/practice)
+// ═══════════════════════════════════════════
+function resetCurrentTopic() {
+  if(!G.cur) return;
+  // show inline confirm toast instead of browser confirm() which blocks on mobile
+  showConfirm('Сбросить тему и начать заново?', () => {
+    const id = G.cur;
+    const s = ts(id);
+    s.phase = 'lesson';
+    s.lessonStep = 0;
+    s.pracPhase = 'step';
+    s.pracLineIdx = 0;
+    s.pracAttempts = 0;
+    s.quizIdx = 0;
+    s.done = false;
+    save();
+    G.cur = id;
+    startTopic(id);
+    showToast('Начинаем заново!', 'y');
+  });
+}
+
+// ═══════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  document.getElementById('theme-btn').textContent = isLight ? '☀️' : '🌙';
+  try { localStorage.setItem('jdojo_theme', isLight ? 'light' : 'dark'); } catch(e){}
+}
+
+function loadTheme() {
+  try {
+    const t = localStorage.getItem('jdojo_theme');
+    if(t === 'light') {
+      document.body.classList.add('light');
+      document.getElementById('theme-btn').textContent = '☀️';
+    }
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════════
+//  RESET TOPIC
+// ═══════════════════════════════════════════
+function resetTopic(id) {
+  const s = ts(id);
+  s.phase = 'lesson';
+  s.lessonStep = 0;
+  s.pracPhase = 'step';
+  s.pracLineIdx = 0;
+  s.pracAttempts = 0;
+  s.quizIdx = 0;
+  s.done = false;
+  save();
+  showToast('Тема сброшена', 'y');
+  renderHome();
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+load();
+loadTheme();
+renderHome();
+</script>
+</body>
+</html>
