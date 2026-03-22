@@ -11,6 +11,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Java Dojo">
 <link rel="manifest" href="manifest.json">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
@@ -1936,18 +1939,26 @@ async function runFinalCode(t, s) {
       })
     });
     const d = await r.json();
+    console.log('Piston raw:', JSON.stringify(d));
+    // Piston v2: {language, version, compile?:{stdout,stderr}, run:{stdout,stderr,code}}
+    const compileErr = (d.compile?.stderr || d.compile?.output || '').trim();
     const run = d.run || {};
-    const stdout = run.stdout || '';
-    const stderr = run.stderr || '';
-    const output = stdout || stderr || '(нет вывода)';
-    const isErr = !!stderr && !stdout;
+    const stdout = (run.stdout || '').trim();
+    const stderr = (run.stderr || '').trim();
+    // if compile failed, run will be empty
+    const output = compileErr && !stdout ? compileErr : (stdout || stderr || '(нет вывода)');
+    const isErr = !!(compileErr && !stdout) || (!stdout && !!stderr);
 
     fb.className = 'dojo-feedback-body';
     if(isErr) {
-      fb.textContent = `⚠️ Ошибка компиляции:\n${output}`;
+      fb.textContent = `⚠️ Ошибка компиляции:
+${output}`;
       fl.textContent = '✗ Ошибка';
     } else {
-      fb.textContent = `✅ Программа выполнена!\n\nВывод:\n${output}`;
+      fb.textContent = `✅ Программа выполнена!
+
+Вывод:
+${output}`;
       fl.textContent = '✓ Результат';
       G.xp += 20; updateHdr(); save();
       showToast('+20 XP за финальный прогон!', 'g');
@@ -2252,14 +2263,16 @@ async function dojoRun() {
       })
     });
     const d = await r.json();
+    console.log('Piston dojo raw:', JSON.stringify(d));
+    const compileErr2 = (d.compile?.stderr || d.compile?.output || '').trim();
     const run = d.run || {};
-    const stdout = run.stdout || '';
-    const stderr = run.stderr || '';
-    const output = stdout || stderr || '(нет вывода)';
+    const stdout = (run.stdout || '').trim();
+    const stderr = (run.stderr || '').trim();
+    const output = compileErr2 && !stdout ? compileErr2 : (stdout || stderr || '(нет вывода)');
     dojoState.lastOutput = output;
 
     outputBody.textContent = output;
-    if(stderr && !stdout) {
+    if(!stdout && (stderr || compileErr2)) {
       outputStatus.textContent = '✗ Ошибка компиляции';
       outputStatus.className = 'dojo-output-status err';
     } else {
@@ -2731,10 +2744,25 @@ renderHome();
 </script>
 <script>
 if('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('SW registered'))
-      .catch(e => console.log('SW error:', e));
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('sw.js');
+      // Force check for updates on every page load
+      reg.update();
+      // If a new SW is waiting — activate it immediately
+      if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {
+          if(newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            // New version ready — reload to apply
+            window.location.reload();
+          }
+        });
+      });
+    } catch(e) {
+      console.log('SW error:', e);
+    }
   });
 }
 </script>
