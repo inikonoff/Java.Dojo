@@ -892,29 +892,18 @@ body.light .dojo-textarea { color:var(--text); }
     <button class="ai-btn" onclick="openAI()">💬 Задать вопрос</button>
   </div>
 
+  <span id="p-fname" style="display:none"></span>
+
   <div class="instr-card" id="p-instr">
     <div class="instr-icon" id="p-icon">⌨️</div>
     <div class="instr-text" id="p-instr-text"></div>
-  </div>
-
-  <!-- Code reference (lines learned so far — read only) -->
-  <div class="code-box" id="p-ref-box" style="margin-bottom:12px">
-    <div class="code-bar">
-      <div class="code-dots">
-        <div class="cd" style="background:#ff5f57"></div>
-        <div class="cd" style="background:#febc2e"></div>
-        <div class="cd" style="background:#28c840"></div>
-      </div>
-      <div class="code-fname" id="p-fname"></div>
-      <div class="prac-phase-badge" id="p-badge"></div>
-    </div>
-    <div class="code-body" id="p-ref-lines" style="opacity:.5;font-size:12px"></div>
   </div>
 
   <!-- Single input area for full block -->
   <div class="prac-stack">
     <div class="prac-header">
       <div class="prac-title">✍️ Введи весь блок по памяти</div>
+      <div class="prac-phase-badge" id="p-badge"></div>
     </div>
     <div style="padding:8px 14px 14px">
       <textarea
@@ -1840,20 +1829,6 @@ function renderPractice(t, s) {
   document.getElementById('p-icon').textContent = '✍️';
   document.getElementById('p-badge').innerHTML = badge;
 
-  // show reference lines (faded) above input
-  const refBox = document.getElementById('p-ref-lines');
-  if(refBox) {
-    refBox.innerHTML = '';
-    t.lines.forEach((ln, i) => {
-      const inBlock = pracState.lines.some(pl => pl.num === i+1);
-      const d = document.createElement('div');
-      d.className = 'cl';
-      d.style.opacity = inBlock ? '0.3' : '0.1';
-      d.innerHTML = `<span class="ln">${i+1}</span><span class="lc">${ln.html}</span>`;
-      refBox.appendChild(d);
-    });
-  }
-
   // reset input and feedback
   const inp = document.getElementById('prac-inp');
   if(inp) { inp.value = ''; inp.style.height = 'auto'; }
@@ -2093,7 +2068,6 @@ function quizNext() {
 // ═══════════════════════════════════════════
 //  DOJO
 // ═══════════════════════════════════════════
-const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
 const WORKER_URL = 'https://little-lake-e28a.inikonoff.workers.dev';
 
 let dojoState = {
@@ -2217,27 +2191,27 @@ async function dojoRun() {
   if(!code) { showToast('Напиши код сначала', 'r'); return; }
 
   dojoState.lastCode = code;
-  const btn = document.getElementById('btn-dojo-run');
-  btn.textContent = '⏳ Компилирую…';
-  btn.disabled = true;
 
   const outputCard = document.getElementById('dojo-output-card');
   const outputBody = document.getElementById('dojo-output-body');
   const outputStatus = document.getElementById('dojo-output-status');
 
   outputCard.style.display = 'block';
-  outputBody.textContent = '…';
+  outputBody.textContent = '⏳ Компилирую…';
   outputStatus.textContent = '';
   outputStatus.className = 'dojo-output-status';
 
   try {
-    const r = await fetch(PISTON_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+    const r = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Target': 'piston'
+      },
       body: JSON.stringify({
         language: 'java',
-        version: '*',
-        files: [{ name:'Main.java', content: code }]
+        version: '15.0.2',
+        files: [{ name: 'Main.java', content: code }]
       })
     });
     const d = await r.json();
@@ -2256,14 +2230,13 @@ async function dojoRun() {
       outputStatus.className = 'dojo-output-status ok';
     }
   } catch(e) {
-    outputBody.textContent = '⚠️ Не удалось подключиться к компилятору. Проверь интернет.';
+    outputBody.textContent = '⚠️ Не удалось подключиться к компилятору.';
     outputStatus.textContent = '✗ Ошибка';
     outputStatus.className = 'dojo-output-status err';
+    dojoState.lastOutput = '';
   }
-
-  btn.textContent = '▶ Запустить';
-  btn.disabled = false;
 }
+
 
 async function dojoCheck() {
   const code = dojoGetCode().trim();
@@ -2272,7 +2245,7 @@ async function dojoCheck() {
   dojoState.attempts++;
   document.getElementById('dojo-attempts-label').textContent = `Попытка ${dojoState.attempts}`;
 
-  // run first if no output yet
+  // run via Piston if not yet done for this code
   if(!dojoState.lastOutput || dojoState.lastCode !== code) {
     await dojoRun();
   }
