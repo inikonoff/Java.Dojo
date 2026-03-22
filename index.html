@@ -1594,23 +1594,27 @@ function renderHome() {
         <button class="t-btn-dojo ${dojoUnlocked ? '' : 'locked'}">🥋 Dojo ${dojoUnlocked ? '' : '🔒'}</button>
       </div>`;
 
-    // Lesson button — go to lesson flow
-    c.querySelector('.t-btn-lesson').addEventListener('click', (e) => {
-      e.stopPropagation();
+    // helper: open lessons for this topic
+    function openLesson() {
       G.cur = t.id;
       const st = ts(t.id);
-      // if done, go to review screen; otherwise continue where left off
-      if(st.done || st.phase === 'done') {
-        startReview(t.id);
-      } else if(st.phase === 'lesson') {
-        startLesson();
-      } else if(st.phase === 'practice') {
-        startPractice();
-      } else if(st.phase === 'quiz') {
-        startQuiz();
-      } else {
-        st.phase='lesson'; save(); startLesson();
-      }
+      if(st.done || st.phase === 'done') startReview(t.id);
+      else if(st.phase === 'lesson') startLesson();
+      else if(st.phase === 'practice') startPractice();
+      else if(st.phase === 'quiz') startQuiz();
+      else { st.phase='lesson'; save(); startLesson(); }
+    }
+
+    // Card click (anywhere except dojo button) = open lessons
+    c.addEventListener('click', (e) => {
+      if(e.target.closest('.t-btn-dojo')) return; // handled below
+      openLesson();
+    });
+
+    // Lesson button — explicit
+    c.querySelector('.t-btn-lesson').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLesson();
     });
 
     // Dojo button
