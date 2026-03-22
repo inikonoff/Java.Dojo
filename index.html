@@ -1516,6 +1516,7 @@ function renderPractice(t, s) {
 
   G.aiCtx = `Тема: ${t.name}. Практика: пользователь вводит строку "${pracState.lines[pracState.linePos]?.raw}".`;
 
+  pracState.hintShown = false; // always reset when entering new practice phase
   renderPracLines();
   clearFeedback();
 }
@@ -1757,7 +1758,10 @@ function openAI() {
   document.getElementById('ai-panel').classList.add('open');
   document.getElementById('overlay').classList.add('show');
   const msgs=document.getElementById('ai-msgs');
-  if(!msgs.children.length) addMsg('bot','👋 Привет! Задавай любые вопросы по Java — объясню простыми словами на русском.');
+  if(!msgs.children.length) {
+    aiHistory = [];
+    addMsg('bot','👋 Привет! Я помню всё что мы обсудили в этом сеансе. Задавай вопросы по Java 😊');
+  }
 }
 function closeAI() {
   document.getElementById('ai-panel').classList.remove('open');
@@ -1781,12 +1785,24 @@ function addLoader() {
   msgs.scrollTop=msgs.scrollHeight;
   return d;
 }
+// AI conversation history (kept in memory per session)
+let aiHistory = [];
+const AI_MAX_HISTORY = 10; // keep last 10 exchanges (20 messages)
+
 async function sendAI() {
   const inp=document.getElementById('ai-in');
   const txt=inp.value.trim(); if(!txt) return;
   inp.value='';
   addMsg('usr',txt);
   const ld=addLoader();
+
+  // add user message to history
+  aiHistory.push({role:'user', content:txt});
+  // trim history to avoid token overflow
+  if(aiHistory.length > AI_MAX_HISTORY * 2) {
+    aiHistory = aiHistory.slice(-AI_MAX_HISTORY * 2);
+  }
+
   try {
     const r=await fetch('https://little-lake-e28a.inikonoff.workers.dev',{
       method:'POST',
@@ -1795,17 +1811,23 @@ async function sendAI() {
         model:'llama-3.3-70b-versatile',
         max_tokens:1000,
         messages:[
-          {role:'system',content:`Ты дружелюбный наставник по Java для студентов-новичков. Отвечай на русском языке, кратко (3-5 предложений), используй эмодзи. Текущий контекст урока: ${G.aiCtx}`},
-          {role:'user',content:txt}
+          // system prompt is injected by the worker, we just add context here
+          // but we include it client-side too as fallback context
+          {role:'system',content:`Контекст текущего урока: ${G.aiCtx}`},
+          ...aiHistory
         ]
       })
     });
     const d=await r.json();
     ld.remove();
     const reply = d.choices?.[0]?.message?.content || 'Не удалось получить ответ.';
+    // add assistant reply to history
+    aiHistory.push({role:'assistant', content:reply});
     addMsg('bot', reply);
   } catch(e) {
     ld.remove();
+    // remove failed user message from history
+    aiHistory.pop();
     addMsg('bot','⚠️ Ошибка соединения. Проверь интернет.');
   }
 }
