@@ -647,19 +647,21 @@ body.light .eli5-card { box-shadow:var(--card-shadow); }
   display:inline-flex;align-items:center;gap:6px;
   background:rgba(232,255,90,.1);border:1px solid rgba(232,255,90,.3);
   color:var(--acc);font-size:11px;font-weight:700;padding:5px 12px;
-  border-radius:4px;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;
+  border-radius:4px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;
 }
-.dojo-title { font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:10px; }
-.dojo-desc { font-size:14px;line-height:1.75;color:var(--text2);margin-bottom:20px; }
-.dojo-hint-box {
-  background:rgba(78,158,255,.06);border:1px solid rgba(78,158,255,.15);
-  border-radius:12px;padding:14px 16px;margin-bottom:20px;
+.dojo-task-card {
+  background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:20px;margin-bottom:16px;
 }
-.dojo-hint-label { font-size:11px;font-weight:700;color:var(--java2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px; }
-.dojo-hint-text { font-size:13px;color:var(--text2);line-height:1.6; }
+.dojo-task-loading {
+  display:flex;gap:4px;align-items:center;margin-top:10px;
+}
+.dojo-task-loading.hide { display:none; }
+.dojo-title { font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:8px; }
+.dojo-desc { font-size:14px;line-height:1.75;color:var(--text2); }
 .dojo-editor {
   background:#0a0c14;border:1px solid var(--border);border-radius:14px;
-  overflow:hidden;margin-bottom:20px;
+  overflow:hidden;margin-bottom:12px;
 }
 .dojo-editor-bar {
   display:flex;align-items:center;justify-content:space-between;
@@ -669,16 +671,40 @@ body.light .eli5-card { box-shadow:var(--card-shadow); }
 .dojo-textarea {
   width:100%;background:transparent;border:none;outline:none;
   font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;
-  color:var(--text);padding:14px;resize:none;min-height:160px;
+  color:var(--text);padding:14px;resize:none;min-height:180px;max-height:400px;overflow-y:auto;
 }
-.dojo-example {
-  background:var(--s2);border:1px solid var(--border);border-radius:12px;
-  padding:14px 16px;margin-bottom:20px;display:none;
+.dojo-output-card {
+  background:#0a0c14;border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;margin-bottom:12px;
 }
-.dojo-example.show { display:block; }
-.dojo-example-label { font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px; }
-.dojo-example-code { font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);white-space:pre;overflow-x:auto; }
+.dojo-output-bar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;background:var(--s1);border-bottom:1px solid var(--border);
+}
+.dojo-output-label { font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3); }
+.dojo-output-status { font-size:11px;font-weight:700; }
+.dojo-output-status.ok { color:var(--green); }
+.dojo-output-status.err { color:var(--red); }
+.dojo-output-body {
+  padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;
+  color:var(--text);white-space:pre-wrap;min-height:40px;line-height:1.6;
+}
+.dojo-feedback-card {
+  background:var(--s1);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;margin-bottom:12px;
+}
+.dojo-feedback-bar {
+  padding:8px 14px;background:var(--s2);border-bottom:1px solid var(--border);
+}
+.dojo-feedback-label { font-size:11px;font-weight:700;color:var(--java2);text-transform:uppercase;letter-spacing:.5px; }
+.dojo-feedback-body {
+  padding:14px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;
+}
+.dojo-feedback-body.loading {
+  display:flex;gap:4px;align-items:center;color:var(--text3);font-size:13px;
+}
 body.light .dojo-editor { background:#f0f2f6; }
+body.light .dojo-output-card { background:#f0f2f6; }
 body.light .dojo-textarea { color:var(--text); }
 
 /* scrollbar */
@@ -872,32 +898,62 @@ body.light .dojo-textarea { color:var(--text); }
     <button class="back-btn" onclick="goHome()">←</button>
     <div class="top-info">
       <div class="top-topic" id="dojo-topic"></div>
-      <div class="top-sub">Свободная практика</div>
+      <div class="top-sub" id="dojo-sub">Свободная практика</div>
     </div>
     <button class="ai-btn" onclick="openAI()">💬 Задать вопрос</button>
   </div>
-  <div class="dojo-badge">🥋 Dojo — отведи душу</div>
-  <div class="dojo-title" id="dojo-title"></div>
-  <div class="dojo-desc" id="dojo-desc"></div>
-  <div class="dojo-hint-box">
-    <div class="dojo-hint-label">💡 Подсказка</div>
-    <div class="dojo-hint-text" id="dojo-hint"></div>
+
+  <!-- Task card -->
+  <div class="dojo-task-card" id="dojo-task-card">
+    <div class="dojo-badge">🥋 Задача</div>
+    <div class="dojo-title" id="dojo-title">Генерирую задачу…</div>
+    <div class="dojo-desc" id="dojo-desc"></div>
+    <div class="dojo-task-loading" id="dojo-task-loading">
+      <div class="eli5-dot"></div><div class="eli5-dot"></div><div class="eli5-dot"></div>
+    </div>
   </div>
+
+  <!-- Editor -->
   <div class="dojo-editor">
     <div class="dojo-editor-bar">
-      <div class="dojo-editor-label">// Пиши здесь свой код</div>
-      <button class="ai-btn" style="font-size:11px;padding:4px 10px" onclick="toggleDojoExample()">👁 Пример</button>
+      <div class="dojo-editor-label" id="dojo-fname">Main.java</div>
+      <div style="display:flex;gap:6px">
+        <button class="ai-btn" style="font-size:11px;padding:4px 10px" onclick="dojoRun()" id="btn-dojo-run">▶ Запустить</button>
+      </div>
     </div>
-    <textarea class="dojo-textarea" id="dojo-textarea" placeholder="// Начни писать...&#10;public class Main {&#10;    public static void main(String[] args) {&#10;        // твой код здесь&#10;    }&#10;}"></textarea>
+    <textarea class="dojo-textarea" id="dojo-textarea"
+      placeholder="public class Main {&#10;    public static void main(String[] args) {&#10;        // твой код здесь&#10;    }&#10;}"
+      oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
   </div>
-  <div class="dojo-example" id="dojo-example">
-    <div class="dojo-example-label">✅ Один из вариантов решения</div>
-    <div class="dojo-example-code" id="dojo-example-code"></div>
+
+  <!-- Output -->
+  <div class="dojo-output-card" id="dojo-output-card" style="display:none">
+    <div class="dojo-output-bar">
+      <span class="dojo-output-label" id="dojo-output-label">Вывод программы</span>
+      <span class="dojo-output-status" id="dojo-output-status"></span>
+    </div>
+    <div class="dojo-output-body" id="dojo-output-body"></div>
   </div>
-  <div class="nav-row">
-    <button class="btn btn-ghost" onclick="toggleDojoExample()">👁 Показать пример</button>
+
+  <!-- AI feedback -->
+  <div class="dojo-feedback-card" id="dojo-feedback-card" style="display:none">
+    <div class="dojo-feedback-bar">
+      <span class="dojo-feedback-label" id="dojo-feedback-label">🤖 Наставник</span>
+    </div>
+    <div class="dojo-feedback-body" id="dojo-feedback-body"></div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="nav-row" style="flex-wrap:wrap;gap:8px" id="dojo-actions">
+    <button class="btn btn-ghost" onclick="dojoCheck()" id="btn-dojo-check">✓ Проверить</button>
+    <button class="btn btn-ghost" onclick="dojoExplain()" id="btn-dojo-explain">📖 Объяснение</button>
+    <button class="btn btn-ghost" onclick="dojoStuck()" id="btn-dojo-stuck">🆘 Я застрял</button>
+    <button class="btn btn-ghost" onclick="dojoNewTask()" id="btn-dojo-new">🔄 Новая задача</button>
     <button class="btn btn-acc" onclick="completeTopic(TOPICS.find(t=>t.id===G.cur), ts(G.cur))">Завершить тему →</button>
   </div>
+
+  <!-- Attempt counter -->
+  <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--text3)" id="dojo-attempts-label"></div>
 </div>
 </div>
 
@@ -1870,21 +1926,261 @@ function quizNext() {
   }
 }
 
+// ═══════════════════════════════════════════
+//  DOJO
+// ═══════════════════════════════════════════
+const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
+const WORKER_URL = 'https://little-lake-e28a.inikonoff.workers.dev';
+
+let dojoState = {
+  topic: null,
+  task: '',
+  attempts: 0,
+  lastOutput: '',
+  lastCode: '',
+};
+
 function startDojo(t) {
+  dojoState.topic = t;
+  dojoState.task = '';
+  dojoState.attempts = 0;
+  dojoState.lastOutput = '';
+  dojoState.lastCode = '';
+
   document.getElementById('dojo-topic').textContent = t.icon+' '+t.name;
-  document.getElementById('dojo-title').textContent = t.dojo.title;
-  document.getElementById('dojo-desc').textContent = t.dojo.desc;
-  document.getElementById('dojo-hint').textContent = t.dojo.hint;
-  document.getElementById('dojo-example-code').textContent = t.dojo.example;
-  document.getElementById('dojo-example').classList.remove('show');
+  document.getElementById('dojo-sub').textContent = '🥋 Dojo — свободная практика';
   document.getElementById('dojo-textarea').value = '';
-  G.aiCtx = `Тема: ${t.name}. Dojo-задание: ${t.dojo.title}. ${t.dojo.desc}`;
+  document.getElementById('dojo-output-card').style.display = 'none';
+  document.getElementById('dojo-feedback-card').style.display = 'none';
+  document.getElementById('dojo-attempts-label').textContent = '';
+
+  G.aiCtx = `Тема: ${t.name}. Dojo — свободная практика.`;
   show('dojo');
+  dojoGenerateTask(t);
+}
+
+async function dojoGenerateTask(t) {
+  const titleEl = document.getElementById('dojo-title');
+  const descEl = document.getElementById('dojo-desc');
+  const loadEl = document.getElementById('dojo-task-loading');
+
+  titleEl.textContent = 'Генерирую задачу…';
+  descEl.textContent = '';
+  loadEl.classList.remove('hide');
+  document.getElementById('dojo-output-card').style.display = 'none';
+  document.getElementById('dojo-feedback-card').style.display = 'none';
+  document.getElementById('dojo-attempts-label').textContent = '';
+  document.getElementById('dojo-textarea').value = '';
+  dojoState.attempts = 0;
+
+  const prompt = `Придумай одну практическую задачу по теме "${t.name}" для студента-новичка Java.
+
+Требования:
+- Задача должна использовать ТОЛЬКО концепции из темы: ${t.desc}
+- Уровень: очень простой, для первого семестра
+- Формат ответа — строго JSON без лишнего текста:
+{"title":"Название задачи (до 8 слов)","desc":"Подробное описание что нужно сделать (2-3 предложения). Конкретно укажи что должна выводить программа."}`;
+
+  try {
+    const r = await fetch(WORKER_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        max_tokens:400,
+        messages:[
+          {role:'system',content:'Ты генерируешь учебные задачи по Java. Отвечай ТОЛЬКО валидным JSON без markdown.'},
+          {role:'user',content:prompt}
+        ]
+      })
+    });
+    const d = await r.json();
+    const raw = d.choices?.[0]?.message?.content || '{}';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const task = JSON.parse(clean);
+    dojoState.task = task.desc;
+    titleEl.textContent = task.title || 'Задача';
+    descEl.textContent = task.desc || '';
+    loadEl.classList.add('hide');
+    G.aiCtx = `Тема: ${t.name}. Задача Dojo: ${task.title}. ${task.desc}`;
+  } catch(e) {
+    // fallback to static task
+    titleEl.textContent = t.dojo.title;
+    descEl.textContent = t.dojo.desc;
+    dojoState.task = t.dojo.desc;
+    loadEl.classList.add('hide');
+  }
+}
+
+async function dojoRun() {
+  const code = document.getElementById('dojo-textarea').value.trim();
+  if(!code) { showToast('Напиши код сначала', 'r'); return; }
+
+  dojoState.lastCode = code;
+  const btn = document.getElementById('btn-dojo-run');
+  btn.textContent = '⏳ Компилирую…';
+  btn.disabled = true;
+
+  const outputCard = document.getElementById('dojo-output-card');
+  const outputBody = document.getElementById('dojo-output-body');
+  const outputStatus = document.getElementById('dojo-output-status');
+
+  outputCard.style.display = 'block';
+  outputBody.textContent = '…';
+  outputStatus.textContent = '';
+  outputStatus.className = 'dojo-output-status';
+
+  try {
+    const r = await fetch(PISTON_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        language: 'java',
+        version: '*',
+        files: [{ name:'Main.java', content: code }]
+      })
+    });
+    const d = await r.json();
+    const run = d.run || {};
+    const stdout = run.stdout || '';
+    const stderr = run.stderr || '';
+    const output = stdout || stderr || '(нет вывода)';
+    dojoState.lastOutput = output;
+
+    outputBody.textContent = output;
+    if(stderr && !stdout) {
+      outputStatus.textContent = '✗ Ошибка компиляции';
+      outputStatus.className = 'dojo-output-status err';
+    } else {
+      outputStatus.textContent = '✓ Выполнено';
+      outputStatus.className = 'dojo-output-status ok';
+    }
+  } catch(e) {
+    outputBody.textContent = '⚠️ Не удалось подключиться к компилятору. Проверь интернет.';
+    outputStatus.textContent = '✗ Ошибка';
+    outputStatus.className = 'dojo-output-status err';
+  }
+
+  btn.textContent = '▶ Запустить';
+  btn.disabled = false;
+}
+
+async function dojoCheck() {
+  const code = document.getElementById('dojo-textarea').value.trim();
+  if(!code) { showToast('Напиши код сначала', 'r'); return; }
+
+  dojoState.attempts++;
+  document.getElementById('dojo-attempts-label').textContent = `Попытка ${dojoState.attempts}`;
+
+  // run first if no output yet
+  if(!dojoState.lastOutput || dojoState.lastCode !== code) {
+    await dojoRun();
+  }
+
+  showDojoFeedbackLoading('🤖 Проверяю твой код…');
+
+  const hintAfter = dojoState.attempts >= 3 ? 'После 3 попыток можешь показать небольшой фрагмент-подсказку, но не полное решение.' : 'Не давай готовое решение.';
+
+  const prompt = `Студент решает задачу по Java.
+
+Задача: ${dojoState.task}
+Код студента:
+\`\`\`java
+${code}
+\`\`\`
+Вывод программы: ${dojoState.lastOutput || '(не запускал)'}
+
+Оцени решение. ${hintAfter}
+- Если правильно: поздравь, объясни почему это хорошее решение, предложи небольшое усложнение.
+- Если есть ошибки: укажи конкретную строку где проблема, объясни через метафору, задай наводящий вопрос. Не давай готовый код.
+- Отвечай на русском, кратко и дружелюбно.`;
+
+  await sendDojoAI(prompt, '🤖 Проверка кода');
+}
+
+async function dojoExplain() {
+  const code = document.getElementById('dojo-textarea').value.trim();
+  if(!code) { showToast('Сначала напиши код', 'r'); return; }
+
+  showDojoFeedbackLoading('📖 Разбираю код построчно…');
+
+  const prompt = `Разбери этот Java-код построчно, начиная с самого первого слова. Объясни каждую строку и каждое ключевое слово простым языком с метафорами. Студент — новичок.
+
+\`\`\`java
+${code}
+\`\`\`
+
+Отвечай на русском. Формат: "Строка 1: [код] — [объяснение]" для каждой строки.`;
+
+  await sendDojoAI(prompt, '📖 Объяснение кода');
+}
+
+async function dojoStuck() {
+  const code = document.getElementById('dojo-textarea').value.trim();
+  showDojoFeedbackLoading('🆘 Помогаю разобраться…');
+
+  const prompt = `Студент застрял на задаче по Java.
+
+Задача: ${dojoState.task}
+${code ? `Что написал студент:
+\`\`\`java
+${code}
+\`\`\`` : 'Студент ещё ничего не написал.'}
+
+Помоги ему через диалог — не давай готовое решение. Спроси с чего начать, подтолкни к первому шагу. Используй простые аналогии. Отвечай на русском.`;
+
+  await sendDojoAI(prompt, '🆘 Помощь');
+}
+
+async function dojoNewTask() {
+  const t = dojoState.topic;
+  if(!t) return;
+  dojoGenerateTask(t);
+}
+
+async function sendDojoAI(prompt, label) {
+  const feedbackCard = document.getElementById('dojo-feedback-card');
+  const feedbackBody = document.getElementById('dojo-feedback-body');
+  const feedbackLabel = document.getElementById('dojo-feedback-label');
+
+  feedbackCard.style.display = 'block';
+  feedbackLabel.textContent = label;
+
+  try {
+    const r = await fetch(WORKER_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        max_tokens:800,
+        messages:[
+          {role:'user', content:prompt}
+        ]
+      })
+    });
+    const d = await r.json();
+    const reply = d.choices?.[0]?.message?.content || 'Не удалось получить ответ.';
+    feedbackBody.className = 'dojo-feedback-body';
+    feedbackBody.textContent = reply;
+  } catch(e) {
+    feedbackBody.className = 'dojo-feedback-body';
+    feedbackBody.textContent = '⚠️ Ошибка соединения.';
+  }
+}
+
+function showDojoFeedbackLoading(label) {
+  const feedbackCard = document.getElementById('dojo-feedback-card');
+  const feedbackBody = document.getElementById('dojo-feedback-body');
+  const feedbackLabel = document.getElementById('dojo-feedback-label');
+
+  feedbackCard.style.display = 'block';
+  feedbackLabel.textContent = label;
+  feedbackBody.className = 'dojo-feedback-body loading';
+  feedbackBody.innerHTML = '<div class="eli5-dot"></div><div class="eli5-dot"></div><div class="eli5-dot"></div>';
 }
 
 function toggleDojoExample() {
-  const el = document.getElementById('dojo-example');
-  el.classList.toggle('show');
+  // kept for backward compat
 }
 
 // ═══════════════════════════════════════════
