@@ -12,6 +12,10 @@
 <meta name="apple-mobile-web-app-title" content="Java Dojo">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -166,6 +170,15 @@ body::after {
   border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100;
 }
+.streak-badge {
+  display:flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:700;color:var(--type);
+  background:rgba(255,184,0,.08);
+  border:1px solid rgba(255,184,0,.2);
+  padding:3px 10px;border-radius:20px;
+  white-space:nowrap;
+}
+body.light .streak-badge { background:rgba(176,80,0,.08);border-color:rgba(176,80,0,.2); }
 .logo {
   font-family:'Syne',sans-serif;font-weight:800;font-size:20px;
   letter-spacing:-1px;cursor:pointer;display:flex;align-items:center;gap:8px;
@@ -609,6 +622,31 @@ body::after {
 }
 .t-reset-btn:hover { border-color:var(--red);color:var(--red); }
 
+.t-card-btns {
+  display:flex;gap:8px;margin-top:10px;
+}
+.t-btn-lesson {
+  flex:1;padding:8px 12px;border-radius:8px;
+  border:1px solid var(--border);background:var(--s2);
+  color:var(--text);font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .15s;font-family:'Manrope',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.t-btn-lesson:hover { border-color:var(--acc);color:var(--acc); }
+.t-btn-dojo {
+  flex:1;padding:8px 12px;border-radius:8px;
+  border:1px solid rgba(232,255,90,.3);background:rgba(232,255,90,.06);
+  color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .15s;font-family:'Manrope',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.t-btn-dojo:hover { background:rgba(232,255,90,.12); }
+.t-btn-dojo.locked {
+  border-color:var(--border);background:transparent;
+  color:var(--text3);cursor:not-allowed;opacity:.5;
+}
+body.light .t-btn-lesson { background:var(--s3); }
+
 .eli5-card {
   background:var(--s1);border:1px solid var(--border);border-radius:14px;
   overflow:hidden;margin-bottom:20px;
@@ -673,6 +711,20 @@ body.light .eli5-card { box-shadow:var(--card-shadow); }
   font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;
   color:var(--text);padding:14px;resize:none;min-height:180px;max-height:400px;overflow-y:auto;
 }
+/* CodeMirror overrides */
+.CodeMirror {
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;line-height:1.75;
+  height:auto;min-height:180px;max-height:400px;
+  background:#0a0c14;
+  border:none;
+}
+.CodeMirror-scroll { min-height:180px;max-height:400px; }
+.CodeMirror-lines { padding:14px; }
+body.light .CodeMirror { background:#f0f2f6;color:#1a1d2e; }
+body.light .CodeMirror-gutters { background:#e8eaf0;border-right:1px solid #d0d4de; }
+.CodeMirror-gutters { background:#0e1018;border-right:1px solid var(--border); }
+.CodeMirror-linenumber { color:var(--text3); }
 .dojo-output-card {
   background:#0a0c14;border:1px solid var(--border);border-radius:12px;
   overflow:hidden;margin-bottom:12px;
@@ -751,6 +803,7 @@ body.light .dojo-textarea { color:var(--text); }
 <header class="hdr">
   <div class="logo" onclick="goHome()">Java<span class="logo-dot">.</span>Dojo</div>
   <div class="hdr-xp">
+    <div class="streak-badge" id="streak-badge" style="display:none">🔥 <span id="streak-val">1</span></div>
     <span class="xp-val" id="hdr-xp-val">0 XP</span>
     <span class="xp-pill" id="hdr-lvl">LVL 1</span>
     <button id="theme-btn" onclick="toggleTheme()" title="Переключить тему" style="
@@ -844,12 +897,43 @@ body.light .dojo-textarea { color:var(--text); }
     <div class="instr-text" id="p-instr-text"></div>
   </div>
 
-  <div class="prac-stack">
-    <div class="prac-header">
-      <div class="prac-title" id="p-fname"></div>
+  <!-- Code reference (lines learned so far — read only) -->
+  <div class="code-box" id="p-ref-box" style="margin-bottom:12px">
+    <div class="code-bar">
+      <div class="code-dots">
+        <div class="cd" style="background:#ff5f57"></div>
+        <div class="cd" style="background:#febc2e"></div>
+        <div class="cd" style="background:#28c840"></div>
+      </div>
+      <div class="code-fname" id="p-fname"></div>
       <div class="prac-phase-badge" id="p-badge"></div>
     </div>
-    <div class="prac-lines" id="p-lines"></div>
+    <div class="code-body" id="p-ref-lines" style="opacity:.5;font-size:12px"></div>
+  </div>
+
+  <!-- Single input area for full block -->
+  <div class="prac-stack">
+    <div class="prac-header">
+      <div class="prac-title">✍️ Введи весь блок по памяти</div>
+    </div>
+    <div style="padding:8px 14px 14px">
+      <textarea
+        id="prac-inp"
+        class="code-input"
+        style="width:100%;min-height:120px;border-left:none;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;resize:none"
+        placeholder="Начни вводить код…"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+      ></textarea>
+    </div>
+  </div>
+
+  <!-- Feedback -->
+  <div class="dojo-feedback-card" id="p-feedback-card" style="display:none;margin-bottom:12px">
+    <div class="dojo-feedback-bar">
+      <span class="dojo-feedback-label" id="p-feedback-label">🤖 Проверка</span>
+    </div>
+    <div class="dojo-feedback-body" id="p-feedback-body"></div>
   </div>
 
   <div class="fb-row">
@@ -863,8 +947,8 @@ body.light .dojo-textarea { color:var(--text); }
   </div>
 
   <div class="nav-row">
-    <button class="btn btn-ghost" onclick="showHint()">Подсказка</button>
-    <button class="btn btn-acc" id="btn-check" onclick="checkLine()">Проверить ↵</button>
+    <button class="btn btn-ghost" onclick="showHint()">💡 Подсказка</button>
+    <button class="btn btn-acc" id="btn-check" onclick="checkBlock()">✓ Проверить</button>
   </div>
 </div>
 </div>
@@ -966,7 +1050,8 @@ body.light .dojo-textarea { color:var(--text); }
   <div class="xp-burst" id="done-xp">+100 XP</div>
   <div class="complete-btns">
     <button class="btn btn-ghost" onclick="repeatTopic()">🔄 Повторить</button>
-    <button class="btn btn-acc" onclick="goHome()">← К темам</button>
+    <button class="btn btn-acc" id="btn-open-dojo" onclick="openDojoFromComplete()">🥋 Открыть Dojo</button>
+    <button class="btn btn-ghost" onclick="goHome()">← К темам</button>
   </div>
 </div>
 </div>
@@ -1486,11 +1571,10 @@ function renderHome() {
     const s = ts(t.id);
     if(s.done) done++;
     const pct = s.done ? 100 : s.phase==='practice' ? 35 : s.phase==='quiz' ? 70 : (s.lessonStep / t.lines.length * 35);
+    const dojoUnlocked = s.done || s.phase === 'done';
 
     const c = document.createElement('div');
     c.className = 't-card';
-
-    const hasProgress = s.lessonStep > 0 || s.phase !== 'lesson' || s.done;
 
     c.innerHTML = `
       <div class="t-card-top">
@@ -1504,11 +1588,41 @@ function renderHome() {
         <span class="t-badge tb-lines">${t.lines.length} строк</span>
         ${s.done ? '<span class="t-badge tb-done">✓ Готово</span>' : ''}
         <div class="t-bar"><div class="t-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="t-card-btns">
+        <button class="t-btn-lesson">📚 Уроки</button>
+        <button class="t-btn-dojo ${dojoUnlocked ? '' : 'locked'}">🥋 Dojo ${dojoUnlocked ? '' : '🔒'}</button>
       </div>`;
 
-    // attach events after innerHTML (so handlers work reliably)
-    c.addEventListener('click', () => startTopic(t.id));
+    // Lesson button — go to lesson flow
+    c.querySelector('.t-btn-lesson').addEventListener('click', (e) => {
+      e.stopPropagation();
+      G.cur = t.id;
+      const st = ts(t.id);
+      // if done, go to review screen; otherwise continue where left off
+      if(st.done || st.phase === 'done') {
+        startReview(t.id);
+      } else if(st.phase === 'lesson') {
+        startLesson();
+      } else if(st.phase === 'practice') {
+        startPractice();
+      } else if(st.phase === 'quiz') {
+        startQuiz();
+      } else {
+        st.phase='lesson'; save(); startLesson();
+      }
+    });
 
+    // Dojo button
+    c.querySelector('.t-btn-dojo').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if(!dojoUnlocked) {
+        showToast('Сначала пройди уроки и тест 🔒', 'r');
+        return;
+      }
+      G.cur = t.id;
+      startDojo(t);
+    });
 
     grid.appendChild(c);
   });
@@ -1533,8 +1647,8 @@ function startTopic(id) {
   if(s.phase === 'lesson') startLesson();
   else if(s.phase === 'practice') startPractice();
   else if(s.phase === 'quiz') startQuiz();
-  else if(s.phase === 'dojo') { const t=TOPICS.find(x=>x.id===id); startDojo(t); }
-  else { s.phase='lesson'; s.lessonStep=0; startLesson(); }
+  else if(s.phase === 'done' || s.done) startReview(id);
+  else { s.phase='lesson'; s.lessonStep=0; save(); startLesson(); }
 }
 
 // ═══════════════════════════════════════════
@@ -1544,6 +1658,21 @@ function startLesson() {
   const t = TOPICS.find(x=>x.id===G.cur);
   const s = ts(G.cur);
   renderLesson(t, s.lessonStep, false);
+  show('lesson');
+}
+
+function startReview(id) {
+  // Show completed topic: all lines visible, click any to see explanation
+  G.cur = id;
+  const t = TOPICS.find(x=>x.id===id);
+  const s = ts(id);
+  // Show last line in lesson view, all lines unlocked
+  s.lessonStep = t.lines.length - 1;
+  renderLesson(t, t.lines.length - 1, false);
+  // Override subtitle and button
+  document.getElementById('l-sub').textContent = '✅ Тема пройдена — нажми на любую строку для повтора';
+  document.getElementById('btn-next').textContent = '🥋 Открыть Dojo';
+  document.getElementById('btn-next').onclick = () => { startDojo(t); };
   show('lesson');
 }
 
@@ -1580,13 +1709,13 @@ function renderLesson(t, step, isPreview) {
     let cls = 'cl';
     if(i === step) cls += ' hi';
     r.className = cls;
-    // only allow clicking lines up to realStep (already studied)
-    if(i <= realStep) {
+    // in review (done): all lines clickable; otherwise only up to realStep
+    if(s.done || i <= realStep) {
       r.onclick=()=>jumpLesson(i);
       r.style.cursor='pointer';
     } else {
       r.style.cursor='default';
-      r.style.opacity='0.35'; // future lines dimmed
+      r.style.opacity='0.35';
     }
     r.innerHTML=`<span class="ln">${i+1}</span><span class="lc">${ln.html}</span>`;
     cb.appendChild(r);
@@ -1688,112 +1817,147 @@ function renderPractice(t, s) {
   document.getElementById('p-topic').textContent = t.icon+' '+t.name;
   document.getElementById('p-fname').textContent = t.file;
 
-  const lineIdx = s.pracLineIdx;
-  let instr, badge, icon;
-  if(s.pracPhase === 'final') {
-    instr = `<strong>Финальный прогон!</strong> Ты изучил все строки. Напиши всю программу с нуля по памяти.`;
+  const isFinal = s.pracPhase === 'final';
+  const count = pracState.lines.length;
+
+  let instr, badge;
+  if(isFinal) {
+    instr = `<strong>Финальный прогон!</strong> Напиши всю программу с нуля по памяти — весь код одним блоком.`;
     badge = '<span class="prac-phase-badge pb-fin">Финал</span>';
-    icon = '🏁';
   } else {
-    const count = pracState.lines.length;
     instr = count === 1
       ? `Ты только что изучил строку <strong>${pracState.lines[0].num}</strong>. Введи её по памяти.`
-      : `Введи строки <strong>${pracState.lines[0].num}–${pracState.lines[pracState.lines.length-1].num}</strong> по памяти — одну за другой.`;
+      : `Введи строки <strong>${pracState.lines[0].num}–${pracState.lines[pracState.lines.length-1].num}</strong> по памяти — весь блок сразу.`;
     badge = '<span class="prac-phase-badge pb-new">Практика</span>';
-    icon = '✍️';
   }
+
   document.getElementById('p-sub').textContent = `Строки: ${pracState.lines.map(l=>l.num).join(', ')}`;
   document.getElementById('p-instr-text').innerHTML = instr;
-  document.getElementById('p-icon').textContent = icon;
+  document.getElementById('p-icon').textContent = '✍️';
   document.getElementById('p-badge').innerHTML = badge;
 
-  G.aiCtx = `Тема: ${t.name}. Практика: пользователь вводит строку "${pracState.lines[pracState.linePos]?.raw}".`;
+  // show reference lines (faded) above input
+  const refBox = document.getElementById('p-ref-lines');
+  if(refBox) {
+    refBox.innerHTML = '';
+    t.lines.forEach((ln, i) => {
+      const inBlock = pracState.lines.some(pl => pl.num === i+1);
+      const d = document.createElement('div');
+      d.className = 'cl';
+      d.style.opacity = inBlock ? '0.3' : '0.1';
+      d.innerHTML = `<span class="ln">${i+1}</span><span class="lc">${ln.html}</span>`;
+      refBox.appendChild(d);
+    });
+  }
 
-  pracState.hintShown = false; // always reset when entering new practice phase
-  renderPracLines();
+  // reset input and feedback
+  const inp = document.getElementById('prac-inp');
+  if(inp) { inp.value = ''; inp.style.height = 'auto'; }
+  const fc = document.getElementById('p-feedback-card');
+  if(fc) fc.style.display = 'none';
+
+  G.aiCtx = `Тема: ${t.name}. Практика: строки ${pracState.lines.map(l=>l.num).join(',')}. Ожидаемый код:\n${pracState.lines.map(l=>l.raw).join('\n')}`;
+
+  pracState.hintShown = false;
   clearFeedback();
+  setTimeout(() => { const i = document.getElementById('prac-inp'); if(i) i.focus(); }, 100);
 }
 
 function renderPracLines() {
-  const container = document.getElementById('p-lines');
-  container.innerHTML = '';
-
-  pracState.lines.forEach((ln, idx) => {
-    if(idx < pracState.linePos) {
-      // confirmed — green locked
-      const d = document.createElement('div');
-      d.className = 'pline-done';
-      d.innerHTML = `<span class="ln">${ln.num}</span>${escHtml(ln.raw)}`;
-      container.appendChild(d);
-    } else if(idx === pracState.linePos) {
-      // active input
-      const wrap = document.createElement('div');
-      wrap.className = 'pline-active';
-      wrap.innerHTML = `<div class="pline-num">${ln.num}</div>`;
-      const inp = document.createElement('textarea');
-      inp.className = 'code-input';
-      inp.id = 'prac-inp';
-      inp.rows = 1;
-      inp.placeholder = `Строка ${ln.num}…`;
-      inp.setAttribute('autocomplete','off');
-      inp.setAttribute('autocorrect','off');
-      inp.setAttribute('autocapitalize','off');
-      inp.setAttribute('spellcheck','false');
-      inp.onkeydown = e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();checkLine();} };
-      inp.oninput = () => { inp.style.height='auto'; inp.style.height=inp.scrollHeight+'px'; };
-      wrap.appendChild(inp);
-      container.appendChild(wrap);
-      setTimeout(()=>inp.focus(),80);
-    }
-    // future lines — not shown (model A: only green above + one input)
-  });
+  // no-op — replaced by block input mode
 }
 
-function checkLine() {
+
+async function checkBlock() {
   const t = TOPICS.find(x=>x.id===G.cur);
   const s = ts(G.cur);
   const inp = document.getElementById('prac-inp');
   if(!inp) return;
 
-  const user = inp.value.trim().replace(/\s+/g,' ');
-  const target = pracState.lines[pracState.linePos].raw.trim().replace(/\s+/g,' ');
+  const userCode = inp.value.trim();
+  if(!userCode) { showToast('Введи код сначала', 'r'); return; }
+
+  const expectedLines = pracState.lines.map(l => l.raw).join('\n');
   pracState.attempts++;
   document.getElementById('p-att').textContent = `Попытка ${pracState.attempts}`;
 
-  if(user === target) {
-    // correct
-    inp.className = 'code-input ok';
-    showFb('✅ Верно!','fb-ok');
+  // show loading feedback
+  const fc = document.getElementById('p-feedback-card');
+  const fb = document.getElementById('p-feedback-body');
+  const fl = document.getElementById('p-feedback-label');
+  fc.style.display = 'block';
+  fl.textContent = '🤖 Проверяю…';
+  fb.className = 'dojo-feedback-body loading';
+  fb.innerHTML = '<div class="eli5-dot"></div><div class="eli5-dot"></div><div class="eli5-dot"></div>';
 
-    const isFirst = pracState.attempts === 1;
-    const xpGain = isFirst ? 10 : 5;
-    G.xp += xpGain;
-    updateHdr();
-    save();
-    showToast(`+${xpGain} XP`,'g');
+  const btn = document.getElementById('btn-check');
+  btn.disabled = true;
 
-    pracState.linePos++;
-    pracState.attempts = 0;
-    pracState.hintShown = false;
-    document.getElementById('p-hint').classList.remove('show');
-    document.getElementById('p-hint-text').textContent = '';
-    document.getElementById('p-att').textContent = '';
+  try {
+    const r = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: `Студент изучает Java и должен написать по памяти следующий код:
 
-    if(pracState.linePos >= pracState.lines.length) {
-      // completed this phase
-      setTimeout(()=> advancePracPhase(t, s), 600);
+Ожидаемый код:
+\`\`\`java
+${expectedLines}
+\`\`\`
+
+Код студента:
+\`\`\`java
+${userCode}
+\`\`\`
+
+Оцени код студента. Правила:
+- Строковые литералы могут отличаться (например "Hello" вместо "Привет") — это НЕ ошибка
+- Имена переменных могут отличаться — это НЕ ошибка  
+- Синтаксис и структура должны совпадать
+- Отступы игнорируй
+
+Если код синтаксически правильный и структурно совпадает — напиши ТОЛЬКО слово: ВЕРНО
+Если есть ошибки — напиши ОШИБКА: и укажи конкретно что не так (одна строка, кратко).
+Отвечай на русском.`
+        }]
+      })
+    });
+    const d = await r.json();
+    const reply = (d.choices?.[0]?.message?.content || '').trim();
+
+    fb.className = 'dojo-feedback-body';
+
+    if(reply.startsWith('ВЕРНО')) {
+      fb.textContent = '✅ Верно! Синтаксис и структура правильные.';
+      fl.textContent = '✅ Результат';
+
+      const xpGain = pracState.attempts === 1 ? 10 : 5;
+      G.xp += xpGain;
+      updateHdr(); save(); recordActivity();
+      showToast(`+${xpGain} XP`, 'g');
+
+      setTimeout(() => advancePracPhase(t, s), 1000);
     } else {
-      setTimeout(()=>{ clearFeedback(); renderPracLines(); }, 500);
+      fb.textContent = reply.replace('ОШИБКА:', '').trim();
+      fl.textContent = '❌ Есть ошибки';
+      inp.classList.add('err');
+      setTimeout(() => { inp.classList.remove('err'); inp.focus(); }, 500);
+      if(pracState.attempts >= 2 && !pracState.hintShown) showHint();
     }
-  } else {
-    inp.className = 'code-input err';
-    // find first diff char
-    const diff = firstDiff(user, target);
-    showFb(`❌ Ошибка в позиции ${diff+1}…`,'fb-err');
-    if(pracState.attempts >= 2 && !pracState.hintShown) showHint();
-    setTimeout(()=>{ inp.className='code-input'; inp.focus(); },500);
+  } catch(e) {
+    fb.className = 'dojo-feedback-body';
+    fb.textContent = '⚠️ Ошибка соединения. Попробуй ещё раз.';
   }
+
+  btn.disabled = false;
 }
+
+function checkLine() { checkBlock(); } // alias for back-compat
+
 
 function firstDiff(a, b) {
   const len = Math.min(a.length, b.length);
@@ -1803,22 +1967,16 @@ function firstDiff(a, b) {
 
 function advancePracPhase(t, s) {
   if(s.pracPhase === 'final') {
-    // All done → quiz
     G.xp += 50;
-    updateHdr();
-    save();
+    updateHdr(); save();
     showToast('+50 XP бонус! 🎉','y');
     setTimeout(()=>{
-      s.phase = 'quiz';
-      s.quizIdx = 0;
-      save();
-      startQuiz();
+      s.phase = 'quiz'; s.quizIdx = 0; save(); startQuiz();
     }, 700);
   } else {
-    // 'step' done → go to next lesson line
+    // step done → next lesson line
     const nextLine = s.pracLineIdx + 1;
     if(nextLine >= t.lines.length) {
-      // no more lines — shouldn't happen, but safety: go to quiz
       s.phase = 'quiz'; s.quizIdx = 0; save(); startQuiz();
     } else {
       s.lessonStep = nextLine;
@@ -1831,11 +1989,14 @@ function advancePracPhase(t, s) {
 }
 
 function showHint() {
-  const ln = pracState.lines[pracState.linePos];
-  if(!ln) return;
   pracState.hintShown = true;
-  const n = Math.max(8, Math.floor(ln.raw.length * 0.4));
-  const hint = ln.raw.substring(0, n) + '…';
+  // In block mode: show first line of the expected block
+  const firstLine = pracState.lines[0];
+  if(!firstLine) return;
+  const n = Math.max(8, Math.floor(firstLine.raw.length * 0.5));
+  const hint = pracState.lines.length === 1
+    ? firstLine.raw.substring(0, n) + '…'
+    : `Первая строка: ${firstLine.raw.substring(0, n)}…`;
   document.getElementById('p-hint-text').textContent = hint;
   document.getElementById('p-hint').classList.add('show');
 }
@@ -1851,6 +2012,8 @@ function clearFeedback() {
   document.getElementById('p-att').textContent='';
   document.getElementById('p-hint').classList.remove('show');
   document.getElementById('p-hint-text').textContent='';
+  const fc = document.getElementById('p-feedback-card');
+  if(fc) fc.style.display = 'none';
 }
 
 // ═══════════════════════════════════════════
@@ -1897,6 +2060,7 @@ function selectOpt(el, idx, cor, exp, t, qi) {
   if(idx===cor) {
     el.classList.add('cor');
     G.xp+=10; updateHdr(); save();
+    recordActivity();
     showToast('+10 XP','g');
   } else {
     el.classList.add('wrg');
@@ -1916,12 +2080,8 @@ function quizNext() {
   if(s.quizIdx < t.quiz.length) {
     save();
     renderQuiz(t, s.quizIdx);
-  } else if(t.dojo) {
-    // go to dojo challenge before completing
-    s.phase = 'dojo';
-    save();
-    startDojo(t);
   } else {
+    // quiz done → complete screen (dojo unlocked from there or from home)
     completeTopic(t,s);
   }
 }
@@ -1940,23 +2100,53 @@ let dojoState = {
   lastCode: '',
 };
 
+let dojoEditor = null; // CodeMirror instance
+
 function startDojo(t) {
   dojoState.topic = t;
   dojoState.task = '';
   dojoState.attempts = 0;
+  dojoState.taskCount = dojoState.taskCount || 0;
   dojoState.lastOutput = '';
   dojoState.lastCode = '';
 
   document.getElementById('dojo-topic').textContent = t.icon+' '+t.name;
   document.getElementById('dojo-sub').textContent = '🥋 Dojo — свободная практика';
-  document.getElementById('dojo-textarea').value = '';
   document.getElementById('dojo-output-card').style.display = 'none';
   document.getElementById('dojo-feedback-card').style.display = 'none';
   document.getElementById('dojo-attempts-label').textContent = '';
 
+  // Init or reset CodeMirror
+  const ta = document.getElementById('dojo-textarea');
+  if(!dojoEditor && typeof CodeMirror !== 'undefined') {
+    dojoEditor = CodeMirror.fromTextArea(ta, {
+      mode: 'text/x-java',
+      theme: 'dracula',
+      lineNumbers: true,
+      indentUnit: 4,
+      tabSize: 4,
+      indentWithTabs: false,
+      lineWrapping: false,
+      autofocus: false,
+      extraKeys: { Tab: cm => cm.execCommand('insertSoftTab') }
+    });
+  } else if(dojoEditor) {
+    dojoEditor.setValue('');
+    dojoEditor.clearHistory();
+  } else if(ta) {
+    ta.value = '';
+  }
+
   G.aiCtx = `Тема: ${t.name}. Dojo — свободная практика.`;
   show('dojo');
+  // small delay to let CM render before generating task
+  setTimeout(() => dojoEditor && dojoEditor.refresh(), 100);
   dojoGenerateTask(t);
+}
+
+function dojoGetCode() {
+  if(dojoEditor) return dojoEditor.getValue();
+  return document.getElementById('dojo-textarea').value;
 }
 
 async function dojoGenerateTask(t) {
@@ -1973,11 +2163,17 @@ async function dojoGenerateTask(t) {
   document.getElementById('dojo-textarea').value = '';
   dojoState.attempts = 0;
 
+  const taskNum = dojoState.taskCount || 0;
+  const difficulty = taskNum === 0 ? 'очень простая (3-5 строк кода)' :
+                     taskNum === 1 ? 'простая (5-7 строк), добавь небольшой twist — например ввод или условие' :
+                     'средняя (7-10 строк), комбинируй 2 концепции темы';
+
   const prompt = `Придумай одну практическую задачу по теме "${t.name}" для студента-новичка Java.
 
 Требования:
 - Задача должна использовать ТОЛЬКО концепции из темы: ${t.desc}
-- Уровень: очень простой, для первого семестра
+- Сложность: ${difficulty}
+- Задача должна отличаться от предыдущих — другие числа, другой сценарий
 - Формат ответа — строго JSON без лишнего текста:
 {"title":"Название задачи (до 8 слов)","desc":"Подробное описание что нужно сделать (2-3 предложения). Конкретно укажи что должна выводить программа."}`;
 
@@ -2013,7 +2209,7 @@ async function dojoGenerateTask(t) {
 }
 
 async function dojoRun() {
-  const code = document.getElementById('dojo-textarea').value.trim();
+  const code = dojoGetCode().trim();
   if(!code) { showToast('Напиши код сначала', 'r'); return; }
 
   dojoState.lastCode = code;
@@ -2066,7 +2262,7 @@ async function dojoRun() {
 }
 
 async function dojoCheck() {
-  const code = document.getElementById('dojo-textarea').value.trim();
+  const code = dojoGetCode().trim();
   if(!code) { showToast('Напиши код сначала', 'r'); return; }
 
   dojoState.attempts++;
@@ -2099,7 +2295,7 @@ ${code}
 }
 
 async function dojoExplain() {
-  const code = document.getElementById('dojo-textarea').value.trim();
+  const code = dojoGetCode().trim();
   if(!code) { showToast('Сначала напиши код', 'r'); return; }
 
   showDojoFeedbackLoading('📖 Разбираю код построчно…');
@@ -2116,7 +2312,7 @@ ${code}
 }
 
 async function dojoStuck() {
-  const code = document.getElementById('dojo-textarea').value.trim();
+  const code = dojoGetCode().trim();
   showDojoFeedbackLoading('🆘 Помогаю разобраться…');
 
   const prompt = `Студент застрял на задаче по Java.
@@ -2135,6 +2331,7 @@ ${code}
 async function dojoNewTask() {
   const t = dojoState.topic;
   if(!t) return;
+  dojoState.taskCount = (dojoState.taskCount || 0) + 1;
   dojoGenerateTask(t);
 }
 
@@ -2187,14 +2384,20 @@ function toggleDojoExample() {
 //  COMPLETE
 // ═══════════════════════════════════════════
 function completeTopic(t,s) {
+  if(!s || !t) { t=TOPICS.find(x=>x.id===G.cur); s=ts(G.cur); }
   if(!s.done) {
     s.done=true; s.phase='done';
     G.xp+=t.xp; updateHdr(); save();
   }
   document.getElementById('done-emoji').textContent = '🏆';
-  document.getElementById('done-sub').textContent = `Ты прошёл тему "${t.name}": изучил каждую строку, набрал её руками, прошёл тест.`;
+  document.getElementById('done-sub').textContent = `Ты прошёл тему "${t.name}": изучил каждую строку, набрал её руками, прошёл тест. Теперь Dojo разблокирован!`;
   document.getElementById('done-xp').textContent = `+${t.xp} XP`;
   show('done');
+}
+
+function openDojoFromComplete() {
+  const t = TOPICS.find(x=>x.id===G.cur);
+  if(t) startDojo(t);
 }
 
 function repeatTopic() {
@@ -2416,6 +2619,59 @@ function resetCurrentTopic() {
 }
 
 // ═══════════════════════════════════════════
+//  STREAK
+// ═══════════════════════════════════════════
+function updateStreak() {
+  try {
+    const today = new Date().toDateString();
+    const data = JSON.parse(localStorage.getItem('jdojo_streak') || '{}');
+    const last = data.last || '';
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+    if(last === today) {
+      // already counted today
+    } else if(last === yesterday) {
+      // consecutive day
+      data.count = (data.count || 1) + 1;
+      data.last = today;
+      localStorage.setItem('jdojo_streak', JSON.stringify(data));
+    } else if(last !== today) {
+      // streak broken or first time
+      data.count = 1;
+      data.last = today;
+      localStorage.setItem('jdojo_streak', JSON.stringify(data));
+    }
+
+    const count = data.count || 1;
+    const badge = document.getElementById('streak-badge');
+    const val = document.getElementById('streak-val');
+    if(count >= 2) {
+      badge.style.display = 'flex';
+      val.textContent = count + ' д.';
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+// call updateStreak when user does something (earns XP)
+function recordActivity() {
+  try {
+    const today = new Date().toDateString();
+    const data = JSON.parse(localStorage.getItem('jdojo_streak') || '{}');
+    const last = data.last || '';
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if(last !== today) {
+      data.count = last === yesterday ? (data.count || 1) + 1 : 1;
+      data.last = today;
+      localStorage.setItem('jdojo_streak', JSON.stringify(data));
+      updateStreak();
+      if(data.count > 1) showToast(`🔥 ${data.count} дня подряд!`, 'y');
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
 //  THEME
 // ═══════════════════════════════════════════
 function toggleTheme() {
@@ -2456,6 +2712,7 @@ function resetTopic(id) {
 // ═══════════════════════════════════════════
 load();
 loadTheme();
+updateStreak();
 renderHome();
 </script>
 <script>
