@@ -902,19 +902,10 @@ body.light .dojo-textarea { color:var(--text); }
   <!-- Single input area for full block -->
   <div class="prac-stack">
     <div class="prac-header">
-      <div class="prac-title">✍️ Введи весь блок по памяти</div>
+      <div class="prac-title">✍️ Практика</div>
       <div class="prac-phase-badge" id="p-badge"></div>
     </div>
-    <div style="padding:8px 14px 14px">
-      <textarea
-        id="prac-inp"
-        class="code-input"
-        style="width:100%;min-height:120px;border-left:none;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;resize:none"
-        placeholder="Начни вводить код…"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
-      ></textarea>
-    </div>
+    <div class="prac-lines" id="p-lines" style="padding:8px 14px 14px"></div>
   </div>
 
   <!-- Feedback -->
@@ -937,7 +928,7 @@ body.light .dojo-textarea { color:var(--text); }
 
   <div class="nav-row">
     <button class="btn btn-ghost" onclick="showHint()">💡 Подсказка</button>
-    <button class="btn btn-acc" id="btn-check" onclick="checkBlock()">✓ Проверить</button>
+    <button class="btn btn-acc" id="btn-check" onclick="checkLine()">✓ Проверить</button>
   </div>
 </div>
 </div>
@@ -1815,12 +1806,12 @@ function renderPractice(t, s) {
 
   let instr, badge;
   if(isFinal) {
-    instr = `<strong>Финальный прогон!</strong> Напиши всю программу с нуля по памяти — весь код одним блоком.`;
+    instr = `<strong>Финальный прогон!</strong> Введи все строки по памяти — одну за другой.`;
     badge = '<span class="prac-phase-badge pb-fin">Финал</span>';
   } else {
     instr = count === 1
       ? `Ты только что изучил строку <strong>${pracState.lines[0].num}</strong>. Введи её по памяти.`
-      : `Введи строки <strong>${pracState.lines[0].num}–${pracState.lines[pracState.lines.length-1].num}</strong> по памяти — весь блок сразу.`;
+      : `Введи строки <strong>${pracState.lines[0].num}–${pracState.lines[pracState.lines.length-1].num}</strong> по памяти — одну за другой.`;
     badge = '<span class="prac-phase-badge pb-new">Практика</span>';
   }
 
@@ -1829,113 +1820,162 @@ function renderPractice(t, s) {
   document.getElementById('p-icon').textContent = '✍️';
   document.getElementById('p-badge').innerHTML = badge;
 
-  // reset input and feedback
-  const inp = document.getElementById('prac-inp');
-  if(inp) { inp.value = ''; inp.style.height = 'auto'; }
   const fc = document.getElementById('p-feedback-card');
   if(fc) fc.style.display = 'none';
 
-  G.aiCtx = `Тема: ${t.name}. Практика: строки ${pracState.lines.map(l=>l.num).join(',')}. Ожидаемый код:\n${pracState.lines.map(l=>l.raw).join('\n')}`;
+  G.aiCtx = `Тема: ${t.name}. Практика: строки ${pracState.lines.map(l=>l.num).join(',')}.`;
 
   pracState.hintShown = false;
+  pracState.linePos = 0;
   clearFeedback();
-  setTimeout(() => { const i = document.getElementById('prac-inp'); if(i) i.focus(); }, 100);
+  renderPracLines();
 }
 
 function renderPracLines() {
-  // no-op — replaced by block input mode
+  const container = document.getElementById('p-lines');
+  if(!container) return;
+  container.innerHTML = '';
+
+  pracState.lines.forEach((ln, idx) => {
+    if(idx < pracState.linePos) {
+      const d = document.createElement('div');
+      d.className = 'pline-done';
+      d.innerHTML = `<span class="ln">${ln.num}</span>${escHtml(ln.raw)}`;
+      container.appendChild(d);
+    } else if(idx === pracState.linePos) {
+      const wrap = document.createElement('div');
+      wrap.className = 'pline-active';
+      wrap.innerHTML = `<div class="pline-num">${ln.num}</div>`;
+      const inp = document.createElement('textarea');
+      inp.className = 'code-input';
+      inp.id = 'prac-inp';
+      inp.rows = 1;
+      inp.placeholder = `Строка ${ln.num}…`;
+      inp.setAttribute('autocomplete','off');
+      inp.setAttribute('autocorrect','off');
+      inp.setAttribute('autocapitalize','off');
+      inp.setAttribute('spellcheck','false');
+      inp.onkeydown = e => {
+        if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); checkLine(); }
+      };
+      inp.oninput = () => { inp.style.height='auto'; inp.style.height=inp.scrollHeight+'px'; };
+      wrap.appendChild(inp);
+      container.appendChild(wrap);
+      setTimeout(()=>inp.focus(), 80);
+    }
+  });
 }
 
 
-async function checkBlock() {
+function checkLine() {
   const t = TOPICS.find(x=>x.id===G.cur);
   const s = ts(G.cur);
   const inp = document.getElementById('prac-inp');
   if(!inp) return;
 
-  const userCode = inp.value.trim();
-  if(!userCode) { showToast('Введи код сначала', 'r'); return; }
-
-  const expectedLines = pracState.lines.map(l => l.raw).join('\n');
+  const user = inp.value.trim().replace(/\s+/g,' ');
+  const target = pracState.lines[pracState.linePos].raw.trim().replace(/\s+/g,' ');
   pracState.attempts++;
   document.getElementById('p-att').textContent = `Попытка ${pracState.attempts}`;
 
-  // show loading feedback
+  if(user === target) {
+    inp.className = 'code-input ok';
+    showFb('✅ Верно!','fb-ok');
+
+    const xpGain = pracState.attempts === 1 ? 10 : 5;
+    G.xp += xpGain;
+    updateHdr(); save(); recordActivity();
+    showToast(`+${xpGain} XP`,'g');
+
+    pracState.linePos++;
+    pracState.attempts = 0;
+    pracState.hintShown = false;
+    document.getElementById('p-hint').classList.remove('show');
+    document.getElementById('p-hint-text').textContent = '';
+    document.getElementById('p-att').textContent = '';
+
+    if(pracState.linePos >= pracState.lines.length) {
+      // all lines done — if final phase, run via Piston, else advance
+      if(s.pracPhase === 'final') {
+        setTimeout(() => runFinalCode(t, s), 600);
+      } else {
+        setTimeout(() => advancePracPhase(t, s), 600);
+      }
+    } else {
+      setTimeout(()=>{ clearFeedback(); renderPracLines(); }, 500);
+    }
+  } else {
+    inp.className = 'code-input err';
+    const diff = firstDiff(user, target);
+    showFb(`❌ Ошибка в позиции ${diff+1}…`,'fb-err');
+    if(pracState.attempts >= 2 && !pracState.hintShown) showHint();
+    setTimeout(()=>{ inp.className='code-input'; inp.focus(); },500);
+  }
+}
+
+async function runFinalCode(t, s) {
+  // Auto-format and run full code via Piston
+  const allLines = t.lines.map(l => l.raw);
+  const formatted = autoFormatJava(allLines);
+
   const fc = document.getElementById('p-feedback-card');
   const fb = document.getElementById('p-feedback-body');
   const fl = document.getElementById('p-feedback-label');
   fc.style.display = 'block';
-  fl.textContent = '🤖 Проверяю…';
+  fl.textContent = '⏳ Компилирую программу…';
   fb.className = 'dojo-feedback-body loading';
   fb.innerHTML = '<div class="eli5-dot"></div><div class="eli5-dot"></div><div class="eli5-dot"></div>';
-
-  const btn = document.getElementById('btn-check');
-  btn.disabled = true;
 
   try {
     const r = await fetch(WORKER_URL, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json', 'X-Target': 'piston' },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        max_tokens: 500,
-        messages: [{
-          role: 'user',
-          content: `Студент изучает Java и должен написать по памяти следующий код:
-
-Ожидаемый код:
-\`\`\`java
-${expectedLines}
-\`\`\`
-
-Код студента:
-\`\`\`java
-${userCode}
-\`\`\`
-
-Оцени код студента. Правила:
-- Строковые литералы могут отличаться (например "Hello" вместо "Привет") — это НЕ ошибка
-- Имена переменных могут отличаться — это НЕ ошибка  
-- Синтаксис и структура должны совпадать
-- Отступы игнорируй
-
-Если код синтаксически правильный и структурно совпадает — напиши ТОЛЬКО слово: ВЕРНО
-Если есть ошибки — напиши ОШИБКА: и укажи конкретно что не так (одна строка, кратко).
-Отвечай на русском.`
-        }]
+        language: 'java', version: '15.0.2',
+        files: [{ name: 'Main.java', content: formatted }]
       })
     });
     const d = await r.json();
-    const reply = (d.choices?.[0]?.message?.content || '').trim();
+    const run = d.run || {};
+    const stdout = run.stdout || '';
+    const stderr = run.stderr || '';
+    const output = stdout || stderr || '(нет вывода)';
+    const isErr = !!stderr && !stdout;
 
     fb.className = 'dojo-feedback-body';
-
-    if(reply.startsWith('ВЕРНО')) {
-      fb.textContent = '✅ Верно! Синтаксис и структура правильные.';
-      fl.textContent = '✅ Результат';
-
-      const xpGain = pracState.attempts === 1 ? 10 : 5;
-      G.xp += xpGain;
-      updateHdr(); save(); recordActivity();
-      showToast(`+${xpGain} XP`, 'g');
-
-      setTimeout(() => advancePracPhase(t, s), 1000);
+    if(isErr) {
+      fb.textContent = `⚠️ Ошибка компиляции:\n${output}`;
+      fl.textContent = '✗ Ошибка';
     } else {
-      fb.textContent = reply.replace('ОШИБКА:', '').trim();
-      fl.textContent = '❌ Есть ошибки';
-      inp.classList.add('err');
-      setTimeout(() => { inp.classList.remove('err'); inp.focus(); }, 500);
-      if(pracState.attempts >= 2 && !pracState.hintShown) showHint();
+      fb.textContent = `✅ Программа выполнена!\n\nВывод:\n${output}`;
+      fl.textContent = '✓ Результат';
+      G.xp += 20; updateHdr(); save();
+      showToast('+20 XP за финальный прогон!', 'g');
     }
   } catch(e) {
     fb.className = 'dojo-feedback-body';
-    fb.textContent = '⚠️ Ошибка соединения. Попробуй ещё раз.';
+    fb.textContent = '⚠️ Нет соединения с компилятором.';
+    fl.textContent = '✗ Ошибка';
   }
 
-  btn.disabled = false;
+  setTimeout(() => advancePracPhase(t, s), 2500);
 }
 
-function checkLine() { checkBlock(); } // alias for back-compat
+function autoFormatJava(lines) {
+  // Simple Java formatter: adds proper indentation based on braces
+  let indent = 0;
+  const result = [];
+  for(const raw of lines) {
+    const trimmed = raw.trim();
+    // decrease indent before closing brace
+    if(trimmed.startsWith('}')) indent = Math.max(0, indent - 1);
+    result.push('    '.repeat(indent) + trimmed);
+    // increase indent after opening brace
+    if(trimmed.endsWith('{')) indent++;
+  }
+  return result.join('\n');
+}
+
 
 
 function firstDiff(a, b) {
@@ -1969,13 +2009,10 @@ function advancePracPhase(t, s) {
 
 function showHint() {
   pracState.hintShown = true;
-  // In block mode: show first line of the expected block
-  const firstLine = pracState.lines[0];
-  if(!firstLine) return;
-  const n = Math.max(8, Math.floor(firstLine.raw.length * 0.5));
-  const hint = pracState.lines.length === 1
-    ? firstLine.raw.substring(0, n) + '…'
-    : `Первая строка: ${firstLine.raw.substring(0, n)}…`;
+  const ln = pracState.lines[pracState.linePos];
+  if(!ln) return;
+  const n = Math.max(8, Math.floor(ln.raw.length * 0.4));
+  const hint = ln.raw.substring(0, n) + '…';
   document.getElementById('p-hint-text').textContent = hint;
   document.getElementById('p-hint').classList.add('show');
 }
