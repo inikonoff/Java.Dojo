@@ -642,6 +642,45 @@ body::after {
 }
 body.light .eli5-card { box-shadow:var(--card-shadow); }
 
+.dojo-screen { max-width:780px;margin:0 auto;padding:24px 16px 60px; }
+.dojo-badge {
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(232,255,90,.1);border:1px solid rgba(232,255,90,.3);
+  color:var(--acc);font-size:11px;font-weight:700;padding:5px 12px;
+  border-radius:4px;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;
+}
+.dojo-title { font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:10px; }
+.dojo-desc { font-size:14px;line-height:1.75;color:var(--text2);margin-bottom:20px; }
+.dojo-hint-box {
+  background:rgba(78,158,255,.06);border:1px solid rgba(78,158,255,.15);
+  border-radius:12px;padding:14px 16px;margin-bottom:20px;
+}
+.dojo-hint-label { font-size:11px;font-weight:700;color:var(--java2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px; }
+.dojo-hint-text { font-size:13px;color:var(--text2);line-height:1.6; }
+.dojo-editor {
+  background:#0a0c14;border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-bottom:20px;
+}
+.dojo-editor-bar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--s1);border-bottom:1px solid var(--border);
+}
+.dojo-editor-label { font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3); }
+.dojo-textarea {
+  width:100%;background:transparent;border:none;outline:none;
+  font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;
+  color:var(--text);padding:14px;resize:none;min-height:160px;
+}
+.dojo-example {
+  background:var(--s2);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;margin-bottom:20px;display:none;
+}
+.dojo-example.show { display:block; }
+.dojo-example-label { font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px; }
+.dojo-example-code { font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);white-space:pre;overflow-x:auto; }
+body.light .dojo-editor { background:#f0f2f6; }
+body.light .dojo-textarea { color:var(--text); }
+
 /* scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -826,6 +865,42 @@ body.light .eli5-card { box-shadow:var(--card-shadow); }
 </div>
 </div>
 
+<!-- ══ DOJO CHALLENGE ══ -->
+<div class="scr" id="s-dojo">
+<div class="dojo-screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="top-info">
+      <div class="top-topic" id="dojo-topic"></div>
+      <div class="top-sub">Свободная практика</div>
+    </div>
+    <button class="ai-btn" onclick="openAI()">💬 Задать вопрос</button>
+  </div>
+  <div class="dojo-badge">🥋 Dojo — отведи душу</div>
+  <div class="dojo-title" id="dojo-title"></div>
+  <div class="dojo-desc" id="dojo-desc"></div>
+  <div class="dojo-hint-box">
+    <div class="dojo-hint-label">💡 Подсказка</div>
+    <div class="dojo-hint-text" id="dojo-hint"></div>
+  </div>
+  <div class="dojo-editor">
+    <div class="dojo-editor-bar">
+      <div class="dojo-editor-label">// Пиши здесь свой код</div>
+      <button class="ai-btn" style="font-size:11px;padding:4px 10px" onclick="toggleDojoExample()">👁 Пример</button>
+    </div>
+    <textarea class="dojo-textarea" id="dojo-textarea" placeholder="// Начни писать...&#10;public class Main {&#10;    public static void main(String[] args) {&#10;        // твой код здесь&#10;    }&#10;}"></textarea>
+  </div>
+  <div class="dojo-example" id="dojo-example">
+    <div class="dojo-example-label">✅ Один из вариантов решения</div>
+    <div class="dojo-example-code" id="dojo-example-code"></div>
+  </div>
+  <div class="nav-row">
+    <button class="btn btn-ghost" onclick="toggleDojoExample()">👁 Показать пример</button>
+    <button class="btn btn-acc" onclick="completeTopic(TOPICS.find(t=>t.id===G.cur), ts(G.cur))">Завершить тему →</button>
+  </div>
+</div>
+</div>
+
 <!-- ══ COMPLETE ══ -->
 <div class="scr" id="s-done">
 <div class="complete-wrap">
@@ -879,14 +954,38 @@ const TOPICS = [
     quiz:[
       { q:'Что делает System.out.println()?', code:null,
         opts:['Читает ввод с клавиатуры','Выводит текст и переходит на новую строку','Создаёт файл','Завершает программу'],
-        cor:1, exp:'println = print + newline. Выводит аргумент в консоль и добавляет символ новой строки \\n.' },
+        cor:1, exp:'println = print + newline. Выводит аргумент в консоль и добавляет перенос строки.' },
       { q:'Зачем в конце каждой инструкции стоит ";"?', code:null,
         opts:['Украшение','Конец комментария','Обязательный терминатор инструкции в Java','Только для println'],
         cor:2, exp:'Точка с запятой — разделитель инструкций. Без неё компилятор выдаст ошибку.' },
       { q:'Почему метод называется именно main?', code:null,
         opts:['Красивое имя','JVM ищет именно его при запуске','Единственно допустимое имя','Потому что первый'],
-        cor:1, exp:'JVM при запуске ищет public static void main(String[] args) — это фиксированная сигнатура точки входа.' },
-    ]
+        cor:1, exp:'JVM при запуске ищет public static void main(String[] args) — фиксированная сигнатура точки входа.' },
+      { q:'Что означает public у класса?', code:null,
+        opts:['Класс важный','Класс доступен из любого места программы','Класс запускается первым','Класс нельзя менять'],
+        cor:1, exp:'public — модификатор доступа. Класс виден всем остальным классам.' },
+      { q:'Что будет если убрать {} у метода main?', code:null,
+        opts:['Программа быстрее','Ошибка компиляции — тело метода обязательно','Метод станет пустым','Ничего'],
+        cor:1, exp:'Фигурные скобки определяют тело метода. Без них компилятор выдаст ошибку синтаксиса.' },
+      { q:'Как вывести текст БЕЗ перехода на новую строку?', code:null,
+        opts:['System.out.println("Hi")','System.out.print("Hi")','System.println("Hi")','out.print("Hi")'],
+        cor:1, exp:'print() выводит без переноса. println() добавляет \n в конце.' },
+      { q:'Что выведет код?', code:'System.out.println("Java");\nSystem.out.println("Dojo");',
+        opts:['JavaDojo','Java Dojo','Ошибка компиляции','Java и Dojo на отдельных строках'],
+        cor:3, exp:'Каждый println добавляет перенос строки. Java и Dojo окажутся на отдельных строках.' },
+      { q:'Имя класса Main должно совпадать с...', code:null,
+        opts:['Именем метода','Именем файла Main.java','Именем папки','Именем проекта'],
+        cor:1, exp:'Имя публичного класса должно совпадать с именем файла включая регистр букв.' },
+      { q:'Что означает static у метода main?', code:null,
+        opts:['Метод не меняется','Метод вызывается без создания объекта класса','Метод быстрее','Только для чтения'],
+        cor:1, exp:'static — метод принадлежит классу, не объекту. JVM вызывает main до создания любых объектов.' },
+      { q:'Сколько методов main может быть в одном классе?', code:null,
+        opts:['Сколько угодно','Два','Только один с сигнатурой String[] args','Ни одного'],
+        cor:2, exp:'Только один main с точной сигнатурой public static void main(String[] args).' },
+    ],
+    dojo:{'title':'Напиши своё первое приветствие','desc':'Ты знаешь как выводить текст. Напиши программу которая выводит три строки: твоё имя, твою группу, и любую фразу о Java. Используй \n для переноса внутри строки если хочешь.','hint':'System.out.println("\n") — это перенос строки внутри текста. Или просто три отдельных println.','example':`System.out.println("Илья");
+System.out.println("ИС-24");
+System.out.println("Java — это сила!");`}
   },
   {
     id:'variables', name:'Переменные и типы', icon:'📦', iconBg:'rgba(78,158,255,.1)',
@@ -929,7 +1028,12 @@ const TOPICS = [
       { q:'Чем String отличается от int?', code:null,
         opts:['Ничем','String — класс для текста, int — примитив для чисел','String только для латиницы','int быстрее'], cor:1,
         exp:'int — примитивный тип, хранит число напрямую. String — класс/объект, хранит массив символов. Поэтому String с заглавной.' },
-    ]
+    ],
+    dojo:{'title':'Переменные о себе','desc':'Объяви переменные которые описывают тебя: имя (String), возраст (int), средний балл (double), учишься ли ты (boolean). Выведи их все через конкатенацию.','hint':'String name = "Илья"; — и так для каждого типа. Потом println(name + ", " + age + " лет");','example':`String name = "Илья";
+int age = 20;
+double gpa = 4.5;
+boolean isStudent = true;
+System.out.println(name + ", " + age + " лет, GPA: " + gpa);`}
   },
   {
     id:'input', name:'Ввод с клавиатуры', icon:'⌨️', iconBg:'rgba(61,220,132,.1)',
@@ -972,7 +1076,13 @@ const TOPICS = [
       { q:'Зачем нужен import java.util.Scanner?', code:null,
         opts:['Для красоты','Чтобы Java нашла класс Scanner в библиотеке','Без него Scanner медленнее','Не нужен'], cor:1,
         exp:'Java не знает о Scanner без import. Эта строка говорит: найди класс в пакете java.util и подключи.' },
-    ]
+    ],
+    dojo:{'title':'Диалог с пользователем','desc':'Напиши программу которая спрашивает имя и любимый язык программирования, потом выводит фразу: "[имя] выбирает [язык]!"','hint':'Два раза sc.nextLine() для двух переменных, потом println с конкатенацией.','example':`Scanner sc = new Scanner(System.in);
+System.out.print("Имя: ");
+String name = sc.nextLine();
+System.out.print("Язык: ");
+String lang = sc.nextLine();
+System.out.println(name + " выбирает " + lang + "!");`}
   },
   {
     id:'conditions', name:'Условия if/else', icon:'🔀', iconBg:'rgba(255,184,0,.1)',
@@ -1025,7 +1135,11 @@ const TOPICS = [
       { q:'Когда выполняется блок else?', code:null,
         opts:['Всегда','Никогда','Когда все if и else if были false','Только без else if'], cor:2,
         exp:'else — запасной вариант. Выполняется только если ни одно условие выше не сработало.' },
-    ]
+    ],
+    dojo:{'title':'Калькулятор оценок','desc':'Спроси балл (0-100) и выведи оценку: 90-100 = "Отлично", 75-89 = "Хорошо", 60-74 = "Удовлетворительно", ниже 60 = "Неудовлетворительно".','hint':'Четыре ветки: if / else if / else if / else. Используй >= и <.','example':`if (score >= 90) { println("Отлично"); }
+else if (score >= 75) { println("Хорошо"); }
+else if (score >= 60) { println("Удовл."); }
+else { println("Неудовл."); }`}
   },
   {
     id:'loops', name:'Циклы for / while', icon:'🔄', iconBg:'rgba(168,85,247,.1)',
@@ -1078,7 +1192,10 @@ const TOPICS = [
       { q:'Когда лучше for, а не while?', code:null,
         opts:['Никогда','Когда заранее известно число итераций','Только для строк','Всегда'], cor:1,
         exp:'for — когда знаешь количество повторений. while — когда повторяешь до наступления условия.' },
-    ]
+    ],
+    dojo:{'title':'Таблица умножения','desc':'Выведи таблицу умножения на 3 (от 3×1 до 3×10). Каждая строка: "3 × N = результат".','hint':'for (int i = 1; i <= 10; i++) { println("3 × " + i + " = " + (3*i)); }','example':`for (int i = 1; i <= 10; i++) {
+    System.out.println("3 × " + i + " = " + (3 * i));
+}`}
   },
   {
     id:'arrays', name:'Массивы', icon:'📊', iconBg:'rgba(239,68,68,.1)',
@@ -1131,7 +1248,11 @@ const TOPICS = [
       { q:'Что при обращении к numbers[10] (массив из 5 элементов)?', code:null,
         opts:['Вернёт 0','Ничего','ArrayIndexOutOfBoundsException','null'], cor:2,
         exp:'Выход за границы → исключение AIOOBE. Одна из самых частых ошибок в Java.' },
-    ]
+    ],
+    dojo:{'title':'Твоя группа','desc':'Создай массив из 5 имён одногруппников. Выведи их все в цикле с номером: "1. Имя", "2. Имя" и т.д.','hint':'String[] names = {"Аня", ...}; Потом for с i+1 для нумерации.','example':`String[] names = {"Аня","Боря","Вася","Галя","Дима"};
+for (int i = 0; i < names.length; i++) {
+    System.out.println((i+1) + ". " + names[i]);
+}`}
   },
   {
     id:'methods', name:'Методы', icon:'⚙️', iconBg:'rgba(20,184,166,.1)',
@@ -1184,7 +1305,14 @@ const TOPICS = [
       { q:'Разница параметр/аргумент?', code:null,
         opts:['То же самое','Параметр в объявлении, аргумент при вызове','Аргумент всегда число','Параметр только String'], cor:1,
         exp:'Параметр: int a в (int a). Аргумент: 42 в foo(42). Параметр — переменная, аргумент — конкретное значение.' },
-    ]
+    ],
+    dojo:{'title':'Методы-помощники','desc':'Напиши метод max(int a, int b) который возвращает большее из двух чисел. И метод greetStudent(String name) который выводит "Привет, [name]! Добро пожаловать в ИС-24."','hint':'Для max используй if/else и return. greet — void метод с println.','example':`static int max(int a, int b) {
+    if (a > b) return a;
+    else return b;
+}
+static void greetStudent(String name) {
+    System.out.println("Привет, " + name + "! ИС-24.");
+}`}
   },
   {
     id:'oop', name:'Основы ООП', icon:'🧱', iconBg:'rgba(99,102,241,.1)',
@@ -1247,7 +1375,18 @@ const TOPICS = [
       { q:'Что делает new?', code:null,
         opts:['Объявляет класс','Выделяет память и создаёт объект, вызывая конструктор','Удаляет объект','Копирует'], cor:1,
         exp:'new выделяет память в heap, создаёт объект, вызывает конструктор. Возвращает ссылку.' },
-    ]
+    ],
+    dojo:{'title':'Создай свой класс','desc':'Напиши класс Group с полями: название (String), количество студентов (int), год (int). Добавь конструктор. Создай объект для своей группы.','hint':'class Group { String name; int students; int year; Group(String n, int s, int y) { this.name=n; ... } }','example':`class Group {
+    String name;
+    int students;
+    int year;
+    Group(String name, int students, int year) {
+        this.name = name;
+        this.students = students;
+        this.year = year;
+    }
+}
+Group g = new Group("ИС-24", 25, 2024);`}
   },
 ];
 
@@ -1338,6 +1477,7 @@ function startTopic(id) {
   if(s.phase === 'lesson') startLesson();
   else if(s.phase === 'practice') startPractice();
   else if(s.phase === 'quiz') startQuiz();
+  else if(s.phase === 'dojo') { const t=TOPICS.find(x=>x.id===id); startDojo(t); }
   else { s.phase='lesson'; s.lessonStep=0; startLesson(); }
 }
 
@@ -1405,11 +1545,8 @@ function renderLesson(t, step, isPreview) {
   // Prev/Next always based on REAL progress
   document.getElementById('btn-prev').style.display = 'none'; // remove prev — no going back
   const isLastReal = realStep === t.lines.length - 1;
-  if(isPreview) {
-    document.getElementById('btn-next').textContent = isLastReal ? '▶ К практике' : `Дальше → (строка ${realStep+2})`;
-  } else {
-    document.getElementById('btn-next').textContent = isLastReal ? '▶ К практике' : 'Дальше →';
-  }
+  // Button always reflects what WILL happen: go to practice after current real step
+  document.getElementById('btn-next').textContent = isLastReal ? '▶ К практике (финал)' : '▶ К практике →';
 
   G.aiCtx = `Тема: ${t.name}. Текущая строка: ${ln.ref}. Код: ${ln.raw}. Объяснение: ${ln.exp.replace(/<[^>]+>/g,' ')}`;
 
@@ -1723,9 +1860,31 @@ function quizNext() {
   if(s.quizIdx < t.quiz.length) {
     save();
     renderQuiz(t, s.quizIdx);
+  } else if(t.dojo) {
+    // go to dojo challenge before completing
+    s.phase = 'dojo';
+    save();
+    startDojo(t);
   } else {
     completeTopic(t,s);
   }
+}
+
+function startDojo(t) {
+  document.getElementById('dojo-topic').textContent = t.icon+' '+t.name;
+  document.getElementById('dojo-title').textContent = t.dojo.title;
+  document.getElementById('dojo-desc').textContent = t.dojo.desc;
+  document.getElementById('dojo-hint').textContent = t.dojo.hint;
+  document.getElementById('dojo-example-code').textContent = t.dojo.example;
+  document.getElementById('dojo-example').classList.remove('show');
+  document.getElementById('dojo-textarea').value = '';
+  G.aiCtx = `Тема: ${t.name}. Dojo-задание: ${t.dojo.title}. ${t.dojo.desc}`;
+  show('dojo');
+}
+
+function toggleDojoExample() {
+  const el = document.getElementById('dojo-example');
+  el.classList.toggle('show');
 }
 
 // ═══════════════════════════════════════════
@@ -1758,9 +1917,9 @@ function openAI() {
   document.getElementById('ai-panel').classList.add('open');
   document.getElementById('overlay').classList.add('show');
   const msgs=document.getElementById('ai-msgs');
+  // Only show greeting on very first open — never reset history on subsequent opens
   if(!msgs.children.length) {
-    aiHistory = [];
-    addMsg('bot','👋 Привет! Я помню всё что мы обсудили в этом сеансе. Задавай вопросы по Java 😊');
+    addMsg('bot','👋 Привет! Я запоминаю наш разговор — можешь ссылаться на предыдущие вопросы. Спрашивай по Java 😊');
   }
 }
 function closeAI() {
