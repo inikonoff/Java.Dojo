@@ -435,29 +435,7 @@ body.light .streak-badge { background:rgba(176,80,0,.08);border-color:rgba(176,8
   display:flex;gap:0;align-items:flex-start;margin-bottom:4px;
   position:relative;
 }
-/* highlight mirror — sits behind textarea */
-.pline-mirror {
-  position:absolute;
-  left:0;right:0;top:0;bottom:0;
-  font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;
-  padding:7px 10px;
-  pointer-events:none;
-  white-space:pre;
-  overflow:hidden;
-  color:transparent; /* text hidden, only spans colored */
-  border-left:2px solid transparent;
-  left:0;top:0;
-  padding-left:0; /* aligns inside editorWrap which starts after pline-num */
-}
 /* transparent textarea sits on top */
-.code-input.highlighted {
-  background:transparent !important;
-  color:transparent !important;
-  caret-color:var(--text) !important;
-  position:relative;
-  z-index:1;
-}
-body.light .code-input.highlighted { caret-color:var(--text) !important; }
 .pline-num {
   font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;
   color:var(--text3);min-width:32px;width:32px;flex-shrink:0;
@@ -1903,25 +1881,9 @@ function renderPracLines() {
     } else if(idx === pracState.linePos) {
       const wrap = document.createElement('div');
       wrap.className = 'pline-active';
-
-      // line number
-      const num = document.createElement('div');
-      num.className = 'pline-num';
-      num.textContent = ln.num;
-      wrap.appendChild(num);
-
-      // container for mirror + textarea
-      const editorWrap = document.createElement('div');
-      editorWrap.style.cssText = 'position:relative;flex:1';
-
-      // mirror div (syntax highlighted display)
-      const mirror = document.createElement('div');
-      mirror.className = 'pline-mirror';
-      mirror.id = 'prac-mirror';
-
-      // textarea (transparent, on top)
+      wrap.innerHTML = `<div class="pline-num">${ln.num}</div>`;
       const inp = document.createElement('textarea');
-      inp.className = 'code-input highlighted';
+      inp.className = 'code-input';
       inp.id = 'prac-inp';
       inp.rows = 1;
       inp.placeholder = `Строка ${ln.num}…`;
@@ -1929,21 +1891,11 @@ function renderPracLines() {
       inp.setAttribute('autocorrect','off');
       inp.setAttribute('autocapitalize','off');
       inp.setAttribute('spellcheck','false');
-      inp.style.cssText = 'margin-left:0;width:100%';
-
       inp.onkeydown = e => {
         if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); checkLine(); }
       };
-      inp.oninput = () => {
-        inp.style.height='auto';
-        inp.style.height=inp.scrollHeight+'px';
-        mirror.style.height = inp.style.height;
-        mirror.innerHTML = syntaxHighlight(inp.value);
-      };
-
-      editorWrap.appendChild(mirror);
-      editorWrap.appendChild(inp);
-      wrap.appendChild(editorWrap);
+      inp.oninput = () => { inp.style.height='auto'; inp.style.height=inp.scrollHeight+'px'; };
+      wrap.appendChild(inp);
       container.appendChild(wrap);
       setTimeout(()=>inp.focus(), 80);
     }
