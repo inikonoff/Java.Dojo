@@ -1973,14 +1973,18 @@ async function runFinalCode(t, s) {
     });
     const d = await r.json();
     console.log('Piston raw:', JSON.stringify(d));
-    // Piston v2: {language, version, compile?:{stdout,stderr}, run:{stdout,stderr,code}}
-    const compileErr = (d.compile?.stderr || d.compile?.output || '').trim();
+    // Piston v2: {language, version, compile?:{stdout,stderr,code}, run:{stdout,stderr,code}}
+    const compileOut = (d.compile?.stdout || '').trim();
+    const compileErr = (d.compile?.stderr || '').trim();
     const run = d.run || {};
     const stdout = (run.stdout || '').trim();
     const stderr = (run.stderr || '').trim();
-    // if compile failed, run will be empty
-    const output = compileErr && !stdout ? compileErr : (stdout || stderr || '(нет вывода)');
-    const isErr = !!(compileErr && !stdout) || (!stdout && !!stderr);
+    const runCode = run.code;
+    // determine output and error state
+    const hasCompileErr = compileErr.length > 0 && runCode !== 0;
+    const output = hasCompileErr ? compileErr : (stdout || stderr || compileOut || '(нет вывода)');
+    const isErr = hasCompileErr || (!stdout && !!stderr);
+    console.log('parsed — stdout:', JSON.stringify(stdout), 'stderr:', JSON.stringify(stderr), 'compileErr:', JSON.stringify(compileErr), 'runCode:', runCode);
 
     fb.className = 'dojo-feedback-body';
     if(isErr) {
@@ -2002,7 +2006,13 @@ ${output}`;
     fl.textContent = '✗ Ошибка';
   }
 
-  setTimeout(() => advancePracPhase(t, s), 2500);
+  // Show continue button instead of auto-advancing
+  const continueBtn = document.createElement('button');
+  continueBtn.className = 'btn btn-acc';
+  continueBtn.style.cssText = 'margin-top:12px;width:100%';
+  continueBtn.textContent = '→ Продолжить';
+  continueBtn.onclick = () => advancePracPhase(t, s);
+  fb.parentElement.appendChild(continueBtn);
 }
 
 function autoFormatJava(lines) {
@@ -2297,15 +2307,18 @@ async function dojoRun() {
     });
     const d = await r.json();
     console.log('Piston dojo raw:', JSON.stringify(d));
-    const compileErr2 = (d.compile?.stderr || d.compile?.output || '').trim();
-    const run = d.run || {};
-    const stdout = (run.stdout || '').trim();
-    const stderr = (run.stderr || '').trim();
-    const output = compileErr2 && !stdout ? compileErr2 : (stdout || stderr || '(нет вывода)');
+    const dCompileErr = (d.compile?.stderr || '').trim();
+    const dRun = d.run || {};
+    const dStdout = (dRun.stdout || '').trim();
+    const dStderr = (dRun.stderr || '').trim();
+    const dRunCode = dRun.code;
+    const dHasCompileErr = dCompileErr.length > 0 && dRunCode !== 0;
+    const output = dHasCompileErr ? dCompileErr : (dStdout || dStderr || '(нет вывода)');
     dojoState.lastOutput = output;
+    console.log('dojo parsed — stdout:', JSON.stringify(dStdout), 'stderr:', JSON.stringify(dStderr), 'compileErr:', JSON.stringify(dCompileErr));
 
     outputBody.textContent = output;
-    if(!stdout && (stderr || compileErr2)) {
+    if(dHasCompileErr || (!dStdout && !!dStderr)) {
       outputStatus.textContent = '✗ Ошибка компиляции';
       outputStatus.className = 'dojo-output-status err';
     } else {
